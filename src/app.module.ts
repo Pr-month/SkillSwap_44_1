@@ -14,18 +14,16 @@ import { UserEntity } from './user.entity';
 
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
+      useFactory: (config: ConfigService) => ({
         type: 'postgres',
-        host: configService.getOrThrow<string>('DB_HOST'),
-        port: Number(configService.getOrThrow<string>('DB_PORT')),
-        username: configService.getOrThrow<string>('DB_USERNAME'),
-        password: configService.getOrThrow<string>('DB_PASSWORD'),
-        database: configService.getOrThrow<string>('DB_NAME'),
+        url: config.getOrThrow<string>('DATABASE_URL'),
         autoLoadEntities: true,
         synchronize: false,
+        ssl: {
+          rejectUnauthorized: false,
+        },
       }),
     }),
-
     TypeOrmModule.forFeature([UserEntity]),
   ],
   controllers: [AppController],
