@@ -1,20 +1,16 @@
 import { Injectable } from '@nestjs/common';
-import { SupabaseService } from './supabase/supabase.service';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { UserEntity } from './user.entity';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly supabase: SupabaseService) {}
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly usersRepository: Repository<UserEntity>,
+  ) {}
 
-  async getUsers(): Promise<unknown> {
-    const { data, error } = await this.supabase.client
-      .from('users')
-      .select('*');
-
-    if (error) {
-      console.error(error);
-      throw new Error('Database error');
-    }
-
-    return data;
+  async getUsers() {
+    return this.usersRepository.find();
   }
 }
