@@ -24,7 +24,7 @@ import { UserEntity } from './user.entity';
         },
       }),
     }),
-    TypeOrmModule.forFeature([UserEntity]),
+    AuthModule, UsersModule
   ],
   controllers: [AppController],
   providers: [AppService],
