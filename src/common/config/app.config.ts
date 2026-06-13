@@ -5,4 +5,4 @@ export const appConfig = registerAs('APP_CONFIG', () => ({
   hashSalt: process.env.HASH_SALT,
 }));
 
-export type IAppConfig = ConfigType<typeof appConfig>;
+export type TAppConfig = ConfigType<typeof appConfig>;
