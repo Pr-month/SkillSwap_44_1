@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '../user.entity';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { JwtExpiresIn } from './auth.types';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { AuthController } from './auth.controller';
         secret: config.get<string>('JWT_SECRET') ?? 'development-secret',
         signOptions: {
           expiresIn: (config.get<string>('JWT_ACCESS_EXPIRES_IN') ??
-            '1h') as NonNullable<JwtModuleOptions['signOptions']>['expiresIn'],
+            '1h') as JwtExpiresIn,
         },
       }),
     }),
