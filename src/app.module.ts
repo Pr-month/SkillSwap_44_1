@@ -6,12 +6,13 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UserEntity } from './user.entity';
 import { appConfig } from './common/config/app.config';
+import { jwtConfig } from './common/config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig],
+      load: [appConfig, jwtConfig],
     }),
 
     TypeOrmModule.forRootAsync({
