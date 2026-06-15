@@ -6,11 +6,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
+import { UserEntity } from './user.entity';
+import { appConfig } from './common/config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      load: [appConfig],
     }),
 
     TypeOrmModule.forRootAsync({
