@@ -1,9 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 
 @Injectable()
 export class AuthService {
+  constructor(
+    @Inject(jwtConfig.KEY)
+    private readonly config: TJwtConfig,
+  ) {}
+
   create(createAuthDto: CreateAuthDto) {
     void createAuthDto;
 
