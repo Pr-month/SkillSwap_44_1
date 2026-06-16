@@ -6,10 +6,6 @@ import { AuthController } from './auth.controller';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { jwtConfig } from '../common/config/jwt.config';
 
-// const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '1d') as NonNullable<
-//   JwtModuleOptions['signOptions']
-// >['expiresIn'];
-
 @Module({
   imports: [
     JwtModule.registerAsync({
