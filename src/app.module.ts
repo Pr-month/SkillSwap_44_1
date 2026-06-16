@@ -4,35 +4,45 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { UserEntity } from './user.entity';
-import { dbConfig } from './config/db.config';
+import { User } from './users/entities/user.entity';
+import { Role } from './users/entities/role.entity';
+
+import { dbConfig } from './common/config/db.config';
+
+import { appConfig } from './common/config/app.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [dbConfig]
+      load: [dbConfig, appConfig],
     }),
 
     TypeOrmModule.forRootAsync({
       inject: [dbConfig.KEY],
-      useFactory: (config: ConfigType<typeof dbConfig>) => ({
+      useFactory: (db: ConfigType<typeof dbConfig>) => ({
         type: 'postgres',
-        host: config.host,
-        port: config.port,
-        username: config.username,
-        password: config.password,
-        database: config.database,
+        host: db.host,
+        port: db.port,
+        username: db.username,
+        password: db.password,
+        database: db.database,
+
         autoLoadEntities: true,
         synchronize: false,
+
         ssl: {
           rejectUnauthorized: false,
         },
       }),
     }),
-    AuthModule, UsersModule
+
+    TypeOrmModule.forFeature([User, Role]),
   ],
+
   controllers: [AppController],
   providers: [AppService],
 })
+
 export class AppModule {}
+
