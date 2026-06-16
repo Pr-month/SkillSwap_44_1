@@ -6,8 +6,8 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
-import { UserEntity } from './user.entity';
 import { appConfig } from './common/config/app.config';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -28,7 +28,7 @@ import { appConfig } from './common/config/app.config';
         },
       }),
     }),
-    // AuthModule,
+    AuthModule,
     TypeOrmModule.forFeature([User, Role])
     // UsersModule,
   ],

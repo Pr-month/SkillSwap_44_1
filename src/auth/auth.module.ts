@@ -3,6 +3,8 @@ import { JwtModule } from '@nestjs/jwt';
 import type { JwtModuleOptions } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
+import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
+import { User } from '../users/entities/user.entity';
 
 const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '1d') as NonNullable<
   JwtModuleOptions['signOptions']
@@ -16,6 +18,7 @@ const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '1d') as NonNullable<
         expiresIn: jwtExpiresIn,
       },
     }),
+    TypeOrmModule.forFeature([User])
   ],
   controllers: [AuthController],
   providers: [AuthService],
