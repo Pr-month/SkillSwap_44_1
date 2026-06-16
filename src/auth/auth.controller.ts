@@ -6,6 +6,7 @@ import {
   Patch,
   Param,
   Delete,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAuthDto } from './dto/create-auth.dto';
@@ -18,6 +19,14 @@ export class AuthController {
   @Post()
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
+  }
+
+  @Post('refresh')
+  async refresh(@Body('token') refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+    return this.authService.refresh(refreshToken);
   }
 
   @Get()

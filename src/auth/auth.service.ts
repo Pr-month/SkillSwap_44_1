@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 
@@ -8,6 +8,19 @@ export class AuthService {
     void createAuthDto;
 
     return 'This action adds a new auth';
+  }
+
+  async refresh(refreshToken: string) {
+    try {
+      // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
+
+      return {
+        accessToken: 'newAccessToken',
+        refreshToken: 'newRefreshToken',
+      };
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
   }
 
   findAll() {
