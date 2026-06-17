@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -9,6 +8,7 @@ import {
   UnauthorizedException,
   Patch,
   Post,
+  Delete,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -19,18 +19,18 @@ import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
+
+  @Post('register')
+  register(@Body() registerRequestDto: RegisterRequestDto) {
+    return this.authService.register(registerRequestDto);
+  }
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @UsePipes(new ValidationPipe({ whitelist: true }))
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
-  }
-
-  @Post('register')
-  register(@Body() registerRequestDto: RegisterRequestDto) {
-    return this.authService.register(registerRequestDto);
   }
 
   @Post('refresh')

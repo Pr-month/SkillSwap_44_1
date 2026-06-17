@@ -4,13 +4,13 @@ import {
   PrimaryGeneratedColumn,
   CreateDateColumn,
   UpdateDateColumn,
-  ManyToMany,
   JoinColumn,
   ManyToOne,
 } from 'typeorm';
 
 import { Gender } from '../users.enums';
 import { Role } from './role.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
@@ -23,6 +23,7 @@ export class User {
   @Column({ unique: true, type: 'varchar', length: 100 })
   email: string;
 
+  @Exclude()
   @Column({ type: 'varchar', length: 100, name: 'password_hash' })
   passwordHash: string;
 
@@ -70,6 +71,7 @@ export class User {
   })
   role: Role;
 
+  @Exclude()
   @Column({
     type: 'varchar',
     length: 100,
@@ -78,9 +80,11 @@ export class User {
   })
   refreshTokenHash: string | null;
 
+  @Exclude()
   @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
   createdAt: Date;
 
+  @Exclude()
   @UpdateDateColumn({ type: 'timestamp', name: 'updated_at' })
   updatedAt: Date;
 }
