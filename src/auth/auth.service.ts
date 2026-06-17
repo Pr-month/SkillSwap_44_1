@@ -83,7 +83,7 @@ export class AuthService {
     // ) ?? '7d') as JwtExpiresIn;
 
     // взял refreshTokenExpiresIn из appConfig
-    const refreshTokenExpiresIn = (this.appConfig.jwt_refresh_expires_in ?? '7d') as JwtExpiresIn;
+    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ?? '7d') as JwtExpiresIn;
 
 
 

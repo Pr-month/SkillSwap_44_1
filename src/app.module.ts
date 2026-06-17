@@ -4,8 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
 
 import { AuthModule } from './auth/auth.module';
-import { User } from './users/entities/user.entity';
-import { Role } from './users/entities/role.entity';
 import { appConfig } from './common/config/app.config';
 import { jwtConfig } from './common/config/jwt.config';
 
@@ -28,8 +26,6 @@ import { jwtConfig } from './common/config/jwt.config';
         },
       }),
     }),
-
-    TypeOrmModule.forFeature([User, Role]),
 
     AuthModule,
     UsersModule,
