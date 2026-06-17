@@ -1,5 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
@@ -10,6 +9,7 @@ import { CreateAuthDto } from './dto/create-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
+import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 
 @Injectable()
 export class AuthService {
@@ -17,7 +17,8 @@ export class AuthService {
     @InjectRepository(UserEntity)
     private readonly usersRepository: Repository<UserEntity>,
     private readonly jwtService: JwtService,
-    private readonly configService: ConfigService,
+    @Inject(jwtConfig.KEY)
+    private readonly config: TJwtConfig,
   ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
@@ -42,9 +43,7 @@ export class AuthService {
     };
 
     const { accessToken, refreshToken } = await this.generateTokens(payload);
-    const hashSaltRounds =
-      this.configService.get<number>('APP_CONFIG.hashSaltRounds') ?? 10;
-    const refreshTokenHash = await bcrypt.hash(refreshToken, hashSaltRounds);
+    const refreshTokenHash = await bcrypt.hash(refreshToken, 10);
 
     await this.usersRepository.update(user.id, { refreshTokenHash });
 
@@ -56,9 +55,8 @@ export class AuthService {
   }
 
   private async generateTokens(payload: IJwtPayload) {
-    const refreshTokenExpiresIn = (this.configService.get<string>(
-      'JWT_REFRESH_EXPIRES_IN',
-    ) ?? '7d') as JwtExpiresIn;
+    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ??
+      '7d') as JwtExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -76,7 +74,7 @@ export class AuthService {
     return 'This action adds a new auth';
   }
 
-  async refresh(refreshToken: string) {
+  async refresh(_refreshToken: string) {
     try {
       // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
 

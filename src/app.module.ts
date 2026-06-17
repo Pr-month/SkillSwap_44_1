@@ -9,13 +9,13 @@ import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
 import { appConfig } from './common/config/app.config';
-import { UsersModule } from './users/users.module';
+import { jwtConfig } from './common/config/jwt.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [appConfig],
+      load: [appConfig, jwtConfig],
     }),
 
     TypeOrmModule.forRootAsync({
