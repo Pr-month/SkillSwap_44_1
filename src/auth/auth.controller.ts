@@ -6,6 +6,8 @@ import {
   HttpCode,
   HttpStatus,
   Param,
+  Delete,
+  UnauthorizedException,
   Patch,
   Post,
   UsePipes,
@@ -30,6 +32,14 @@ export class AuthController {
   @Post()
   create(@Body() createAuthDto: CreateAuthDto) {
     return this.authService.create(createAuthDto);
+  }
+
+  @Post('refresh')
+  async refresh(@Body('token') refreshToken: string) {
+    if (!refreshToken) {
+      throw new UnauthorizedException();
+    }
+    return this.authService.refresh(refreshToken);
   }
 
   @Get()

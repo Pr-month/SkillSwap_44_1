@@ -76,6 +76,19 @@ export class AuthService {
     return 'This action adds a new auth';
   }
 
+  async refresh(refreshToken: string) {
+    try {
+      // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
+
+      return {
+        accessToken: 'newAccessToken',
+        refreshToken: 'newRefreshToken',
+      };
+    } catch (error) {
+      throw new UnauthorizedException();
+    }
+  }
+
   findAll() {
     return `This action returns all auth`;
   }
