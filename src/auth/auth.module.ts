@@ -1,22 +1,20 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import type { JwtModuleOptions } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { jwtConfig } from '../common/config/jwt.config';
+import { ConfigModule } from '@nestjs/config';
+import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 
 @Module({
   imports: [
     JwtModule.registerAsync({
       imports: [ConfigModule.forFeature(jwtConfig)],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const config = configService.get('JWT_CONFIG');
+      inject: [jwtConfig.KEY],
+      useFactory: (jwtConfig: TJwtConfig) => {
         return {
-          secret: config.accessToken,
+          secret: jwtConfig.accessToken,
           signOptions: {
-            expiresIn: config.accessTokenExpiresIn,
+            expiresIn: jwtConfig.accessTokenExpiresIn,
           },
         };
       },
