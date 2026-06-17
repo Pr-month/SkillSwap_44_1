@@ -4,10 +4,11 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { AuthModule } from './auth/auth.module';
 import { User } from './users/entities/user.entity';
 import { Role } from './users/entities/role.entity';
-import { UserEntity } from './user.entity';
 import { appConfig } from './common/config/app.config';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -28,9 +29,9 @@ import { appConfig } from './common/config/app.config';
         },
       }),
     }),
-    // AuthModule,
-    TypeOrmModule.forFeature([User, Role])
-    // UsersModule,
+    TypeOrmModule.forFeature([User, Role]),
+    AuthModule,
+    UsersModule,
   ],
   controllers: [AppController],
   providers: [AppService],

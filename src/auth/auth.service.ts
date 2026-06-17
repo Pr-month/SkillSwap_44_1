@@ -1,9 +1,75 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
+import { UserEntity } from '../user.entity';
+import type { IJwtPayload, JwtExpiresIn } from './auth.types';
 import { CreateAuthDto } from './dto/create-auth.dto';
+import { LoginDto } from './dto/login.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 
 @Injectable()
 export class AuthService {
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly usersRepository: Repository<UserEntity>,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+  ) {}
+
+  async login(loginDto: LoginDto): Promise<LoginResponseDto> {
+    const email = loginDto.email.trim().toLowerCase();
+    const user = await this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.passwordHash')
+      .where('LOWER(user.email) = :email', { email })
+      .getOne();
+
+    const isPasswordValid =
+      user && (await bcrypt.compare(loginDto.password, user.passwordHash));
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
+
+    const payload: IJwtPayload = {
+      sub: String(user.id),
+      email: user.email,
+      roleId: user.roleId,
+    };
+
+    const { accessToken, refreshToken } = await this.generateTokens(payload);
+    const hashSaltRounds =
+      this.configService.get<number>('APP_CONFIG.hashSaltRounds') ?? 10;
+    const refreshTokenHash = await bcrypt.hash(refreshToken, hashSaltRounds);
+
+    await this.usersRepository.update(user.id, { refreshTokenHash });
+
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  private async generateTokens(payload: IJwtPayload) {
+    const refreshTokenExpiresIn = (this.configService.get<string>(
+      'JWT_REFRESH_EXPIRES_IN',
+    ) ?? '7d') as JwtExpiresIn;
+
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(payload),
+      this.jwtService.signAsync(payload, {
+        expiresIn: refreshTokenExpiresIn,
+      }),
+    ]);
+
+    return { accessToken, refreshToken };
+  }
+
   create(createAuthDto: CreateAuthDto) {
     void createAuthDto;
 
