@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Delete,
   UnauthorizedException,
   Patch,
   Post,
@@ -14,7 +13,7 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
+import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 
@@ -29,9 +28,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('register')
+  register(@Body() registerRequestDto: RegisterRequestDto) {
+    return this.authService.register(registerRequestDto);
   }
 
   @Post('refresh')
