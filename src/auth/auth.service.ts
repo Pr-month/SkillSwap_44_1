@@ -20,6 +20,7 @@ import { LoginResponseDto } from './dto/login-response.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import { Repository, QueryFailedError } from 'typeorm';
 import { RegisterResponseDto } from './dto/register-response.dto';
+import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +35,9 @@ export class AuthService {
 
     // внедряем jwtService
     private readonly jwtService: JwtService,
-  ) { }
+    @Inject(jwtConfig.KEY)
+    private readonly config: TJwtConfig,
+  ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const email = loginDto.email.trim().toLowerCase();

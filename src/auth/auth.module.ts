@@ -1,39 +1,34 @@
-import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import type { JwtModuleOptions } from '@nestjs/jwt';
+import { ConfigModule } from "@nestjs/config";
+import { JwtModule, JwtModuleOptions } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { jwtConfig, TJwtConfig } from "../common/config/jwt.config";
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
+import { JwtStrategy } from "./jwt.strategy";
+import { Module } from "@nestjs/common";
+import { User } from "../users/entities/user.entity";
 
-// было:
-// import { UserEntity } from '../user.entity';
-// добавил энтити юзера
-import { User } from '../users/entities/user.entity';
-
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { TypeOrmModule } from '@nestjs/typeorm/dist/typeorm.module';
-
-const jwtExpiresIn = (process.env.JWT_EXPIRES_IN ?? '1d') as NonNullable<
-  JwtModuleOptions['signOptions']
->['expiresIn'];
-import { JwtExpiresIn } from './auth.types';
 
 @Module({
   imports: [
-    // изменил юзера
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     TypeOrmModule.forFeature([User]),
     JwtModule.registerAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService): JwtModuleOptions => ({
-        secret: config.get<string>('JWT_SECRET') ?? 'development-secret',
-        signOptions: {
-          expiresIn: (config.get<string>('JWT_ACCESS_EXPIRES_IN') ??
-            '1h') as JwtExpiresIn,
-        },
-      }),
+      imports: [ConfigModule.forFeature(jwtConfig)],
+      inject: [jwtConfig.KEY],
+      useFactory: (jwtConfig: TJwtConfig) => {
+        return {
+          secret: jwtConfig.accessToken,
+          signOptions: {
+            expiresIn: jwtConfig.accessTokenExpiresIn,
+          },
+        };
+      },
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   exports: [JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }
