@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { UsersModule } from './users/users.module';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -18,7 +19,7 @@ import { UsersModule } from './users/users.module';
     }),
 
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService], 
+      inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.getOrThrow<string>('DATABASE_URL'),
@@ -29,11 +30,10 @@ import { UsersModule } from './users/users.module';
         },
       }),
     }),
-    TypeOrmModule.forFeature([User, Role]),
     AuthModule,
     UsersModule,
   ],
-  controllers: [AppController],
-  providers: [AppService],
+  controllers: [],
+  providers: [],
 })
 export class AppModule {}
