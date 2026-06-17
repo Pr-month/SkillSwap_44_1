@@ -30,4 +30,4 @@ import { Module } from "@nestjs/common";
   providers: [AuthService, JwtStrategy],
   exports: [JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }
