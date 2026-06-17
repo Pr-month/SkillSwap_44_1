@@ -10,6 +10,7 @@ import {
 
 import { Gender } from '../users.enums';
 import { Role } from './role.entity';
+import { Exclude } from 'class-transformer';
 
 @Entity('users')
 export class User {
@@ -64,7 +65,7 @@ export class User {
   })
   role: Role;
 
-
+  @Exclude()
   @Column({
     type: 'varchar',
     length: 100,
