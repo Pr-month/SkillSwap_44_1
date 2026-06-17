@@ -6,7 +6,7 @@ import {
   UpdateDateColumn,
   ManyToMany,
   JoinColumn,
-  ManyToOne
+  ManyToOne,
 } from 'typeorm';
 
 import { Gender } from '../users.enums';
@@ -47,7 +47,12 @@ export class User {
   @Column({ type: 'varchar', length: 100, array: true, name: 'want_to_learn' })
   wantToLearn: string[];
 
-  @Column({ type: 'varchar', length: 100, array: true, name: 'favourite_skills' })
+  @Column({
+    type: 'varchar',
+    length: 100,
+    array: true,
+    name: 'favourite_skills',
+  })
   favouriteSkills: string[];
 
   @Column({
@@ -64,7 +69,6 @@ export class User {
     name: 'role_id',
   })
   role: Role;
-
 
   @Column({
     type: 'varchar',
