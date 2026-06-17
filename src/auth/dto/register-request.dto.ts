@@ -34,11 +34,11 @@ export class RegisterRequestDto {
     @IsArray()
     wantToLearn?: string[];
 
-    @IsOptional()
-    @IsArray()
-    skills?: string[];
+    // @IsOptional()
+    // @IsArray()
+    // skills?: string[];
     
-    @IsOptional()
-    @IsArray()
-    favouriteSkills?: string[];
+    // @IsOptional()
+    // @IsArray()
+    // favouriteSkills?: string[];
 }

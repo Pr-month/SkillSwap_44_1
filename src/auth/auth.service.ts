@@ -1,4 +1,5 @@
-import { ConflictException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { appConfig, TAppConfig } from './../common/config/app.config';
+import { ConflictException, Injectable, Inject } from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { UpdateAuthDto } from './dto/update-auth.dto';
 import * as bcrypt from "bcrypt"
@@ -6,7 +7,6 @@ import { RegisterResponseDto } from './dto/register-response.dto';
 import { Repository, QueryFailedError } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from '../users/entities/user.entity';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -17,12 +17,13 @@ export class AuthService {
     private readonly usersRepository: Repository<User>,
 
     // внедряем сервис конфигурации
-    private readonly configService: ConfigService
+    @Inject(appConfig.KEY)
+    private readonly appConfig: TAppConfig
   ) { }
 
   async register(registerRequestDto: RegisterRequestDto) {
     // достаем соль из .env
-    const saltRounds = this.configService.get<number>('SALT_ROUNDS', 10);
+    const saltRounds = this.appConfig.hashSalt || 10;
 
     // хешируем пароль с солью 10
     const hashedPassword = await bcrypt.hash(registerRequestDto.password, Number(saltRounds));
@@ -33,8 +34,8 @@ export class AuthService {
       ...registerRequestDto,
       passwordHash: hashedPassword,
       birthdate: new Date(registerRequestDto.birthdate),
-      favouriteSkills: registerRequestDto.favouriteSkills ?? [],
-      skills: registerRequestDto.skills ?? [],
+      // favouriteSkills: registerRequestDto.favouriteSkills ?? [],
+      // skills: registerRequestDto.skills ?? [],
       wantToLearn: registerRequestDto.wantToLearn ?? [],
       // указываем по дефолту роль пользователя
       roleId: 2
@@ -46,19 +47,8 @@ export class AuthService {
       const savedUser = await this.usersRepository.save(newUser);
 
       // формируем объект ответа
-      const response: RegisterResponseDto = {
-        id: savedUser.id,
-        email: savedUser.email,
-        name: savedUser.name,
-        gender: savedUser.gender,
-        city: savedUser.city,
-        birthdate: savedUser.birthdate,
-        about: savedUser.about ?? undefined,
-        avatar: savedUser.avatar ?? undefined,
-        wantToLearn: savedUser.wantToLearn,
-        skills: savedUser.skills,
-        favouriteSkills: savedUser.favouriteSkills,
-        roleId: String(savedUser.roleId),
+      const response = {
+        ...savedUser
       }
 
       // возвращаем запушенное значение 
@@ -81,7 +71,7 @@ export class AuthService {
       }
 
       // если ошибка по другой причине
-      throw new InternalServerErrorException('При регистрации возникла ошибка');
+      throw error;
     }
 
 
