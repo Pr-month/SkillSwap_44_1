@@ -1,13 +1,13 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { JwtModule } from '@nestjs/jwt';
-import { PassportModule } from '@nestjs/passport';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserEntity } from '../user.entity';
-import { AuthService } from './auth.service';
-import { AuthController } from './auth.controller';
-import { JwtStrategy } from './jwt.strategy';
-import { jwtConfig } from '../common/config/jwt.config';
+import { ConfigModule } from "@nestjs/config";
+import { JwtModule } from "@nestjs/jwt";
+import { PassportModule } from "@nestjs/passport";
+import { TypeOrmModule } from "@nestjs/typeorm";
+import { jwtConfig, TJwtConfig } from "../common/config/jwt.config";
+import { UserEntity } from "../user.entity";
+import { AuthController } from "./auth.controller";
+import { AuthService } from "./auth.service";
+import { JwtStrategy } from "./jwt.strategy";
+import { Module } from "@nestjs/common";
 
 @Module({
   imports: [
@@ -15,13 +15,12 @@ import { jwtConfig } from '../common/config/jwt.config';
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule.forFeature(jwtConfig)],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const config = configService.get('JWT_CONFIG');
+      inject: [jwtConfig.KEY],
+      useFactory: (jwtConfig: TJwtConfig) => {
         return {
-          secret: config.accessToken,
+          secret: jwtConfig.accessToken,
           signOptions: {
-            expiresIn: config.accessTokenExpiresIn,
+            expiresIn: jwtConfig.accessTokenExpiresIn,
           },
         };
       },
@@ -31,4 +30,4 @@ import { jwtConfig } from '../common/config/jwt.config';
   providers: [AuthService, JwtStrategy],
   exports: [JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }
