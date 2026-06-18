@@ -19,7 +19,6 @@ import { jwtConfig } from './common/config/jwt.config';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.getOrThrow<string>('DATABASE_URL'),
-        logging: true,
         autoLoadEntities: true,
         synchronize: false,
         ssl: {
