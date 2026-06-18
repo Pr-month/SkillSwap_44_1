@@ -5,9 +5,10 @@ import { TypeOrmModule } from "@nestjs/typeorm";
 import { jwtConfig, TJwtConfig } from "../common/config/jwt.config";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { JwtStrategy } from "./jwt.strategy";
+import { JwtStrategy } from "./strategies/jwt.strategy";
 import { Module } from "@nestjs/common";
 import { User } from "../users/entities/user.entity";
+import { UsersModule } from "../users/users.module";
 
 
 @Module({
@@ -26,6 +27,7 @@ import { User } from "../users/entities/user.entity";
         };
       },
     }),
+    UsersModule
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

@@ -1,33 +1,24 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
 import { ConflictException, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
-
-// было: теперь использую Inject appConfig
-// import { ConfigService } from '@nestjs/config';
-
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-
-// было:
-// import { UserEntity } from '../user.entity';
-// стало
 import { User } from '../users/entities/user.entity';
-
-import type { IJwtPayload, JwtExpiresIn } from './auth.types';
+import type { IJwtPayload, JwtExpiresIn } from './types/auth.types';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
-import { Repository, QueryFailedError } from 'typeorm';
+import { QueryFailedError } from 'typeorm';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
+import { UserRepository } from '../users/users.repository';
 
 @Injectable()
 export class AuthService {
   constructor(
     // инжектим репозиторий для работы с бд
-    @InjectRepository(User)
-    private readonly usersRepository: Repository<User>,
+    // @InjectRepository(User)
+    private readonly usersRepository: UserRepository,
 
     // инжектим сервис конфигурации
     @Inject(appConfig.KEY)
@@ -35,18 +26,14 @@ export class AuthService {
 
     // внедряем jwtService
     private readonly jwtService: JwtService,
+
     @Inject(jwtConfig.KEY)
     private readonly config: TJwtConfig,
-  ) {}
+  ) { }
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const email = loginDto.email.trim().toLowerCase();
-    const user = await this.usersRepository
-      .createQueryBuilder('user')
-      .addSelect('user.passwordHash')
-      .where('LOWER(user.email) = :email', { email })
-      .getOne();
-
+    const user = await this.usersRepository.findByEmailWithPassword(email);
     const isPasswordValid =
       user && (await bcrypt.compare(loginDto.password, user.passwordHash));
 
@@ -65,7 +52,7 @@ export class AuthService {
       this.appConfig.hashSaltRounds ?? 10;
     const refreshTokenHash = await bcrypt.hash(refreshToken, hashSaltRounds);
 
-    await this.usersRepository.update(user.id, { refreshTokenHash });
+    await this.usersRepository.updateUser(user.id, { refreshTokenHash });
 
     return {
       user,
@@ -76,16 +63,8 @@ export class AuthService {
 
   // метод генерации токена
   private async generateTokens(payload: IJwtPayload) {
-
-    // было:
-    // const refreshTokenExpiresIn = (this.configService.get<string>(
-    //   'JWT_REFRESH_EXPIRES_IN',
-    // ) ?? '7d') as JwtExpiresIn;
-
     // взял refreshTokenExpiresIn из appConfig
     const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ?? '7d') as JwtExpiresIn;
-
-
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -105,22 +84,15 @@ export class AuthService {
     // хешируем пароль с солью 10
     const hashedPassword = await bcrypt.hash(registerRequestDto.password, saltRounds);
 
-
-    // копируем поля полученные с фронта, меняем пароль на хеш
-    const newUser = this.usersRepository.create({
-      ...registerRequestDto,
-      passwordHash: hashedPassword,
-      birthdate: new Date(registerRequestDto.birthdate),
-      wantToLearn: registerRequestDto.wantToLearn ?? [],
-
-      // указываем по дефолту роль пользователя
-      roleId: 2
-    });
-
-
+    
     try {
-      // пытаемся запушить пользователя в бд
-      const savedUser = await this.usersRepository.save(newUser);
+      console.log(registerRequestDto);
+      console.log(hashedPassword);
+
+      // крафтим нового пользователя
+      const savedUser = await this.usersRepository.createUser(registerRequestDto, hashedPassword);
+
+      console.log(savedUser);
 
       // формируем payload
       const payload: IJwtPayload = {
@@ -138,12 +110,9 @@ export class AuthService {
         this.appConfig.hashSaltRounds,
       );
 
-      // записываем рефреш токен в бд
-      await this.usersRepository.update(
-        savedUser.id,
-        { refreshTokenHash },
-      );
-      
+      // записываем рефреш токен созданному пользователю
+      const res = await this.usersRepository.updateUser(savedUser.id, {refreshTokenHash});
+
       // формируем объект ответа
       const response: RegisterResponseDto = {
         user: savedUser,
@@ -191,21 +160,5 @@ export class AuthService {
     }
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
-
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    void updateAuthDto;
-
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
-  }
 }

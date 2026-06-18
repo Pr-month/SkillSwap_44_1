@@ -1,6 +1,3 @@
-// старый вариант
-// import { UserEntity } from '../../user.entity';
-
 // изменил на энтити из users
 import {User} from '../../users/entities/user.entity'
 
