@@ -1,10 +1,13 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import { ConflictException, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/entities/user.entity';
 import type { IJwtPayload, JwtExpiresIn } from './types/auth.types';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
@@ -29,7 +32,7 @@ export class AuthService {
 
     @Inject(jwtConfig.KEY)
     private readonly config: TJwtConfig,
-  ) { }
+  ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const email = loginDto.email.trim().toLowerCase();
@@ -48,8 +51,7 @@ export class AuthService {
     };
 
     const { accessToken, refreshToken } = await this.generateTokens(payload);
-    const hashSaltRounds =
-      this.appConfig.hashSaltRounds ?? 10;
+    const hashSaltRounds = this.appConfig.hashSaltRounds ?? 10;
     const refreshTokenHash = await bcrypt.hash(refreshToken, hashSaltRounds);
 
     await this.usersRepository.updateUser(user.id, { refreshTokenHash });
@@ -63,12 +65,18 @@ export class AuthService {
 
   // метод генерации токена
   private async generateTokens(payload: IJwtPayload) {
-    // взял refreshTokenExpiresIn из appConfig
-    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ?? '7d') as JwtExpiresIn;
+    const accessTokenExpiresIn = (this.config.accessTokenExpiresIn ??
+      '1h') as JwtExpiresIn;
+    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ??
+      '7d') as JwtExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
+        secret: this.config.accessToken,
+        expiresIn: accessTokenExpiresIn,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.config.refreshToken,
         expiresIn: refreshTokenExpiresIn,
       }),
     ]);
@@ -82,15 +90,20 @@ export class AuthService {
     const saltRounds = this.appConfig.hashSaltRounds || 10;
 
     // хешируем пароль с солью 10
-    const hashedPassword = await bcrypt.hash(registerRequestDto.password, saltRounds);
+    const hashedPassword = await bcrypt.hash(
+      registerRequestDto.password,
+      saltRounds,
+    );
 
-    
     try {
       console.log(registerRequestDto);
       console.log(hashedPassword);
 
       // крафтим нового пользователя
-      const savedUser = await this.usersRepository.createUser(registerRequestDto, hashedPassword);
+      const savedUser = await this.usersRepository.createUser(
+        registerRequestDto,
+        hashedPassword,
+      );
 
       console.log(savedUser);
 
@@ -111,20 +124,20 @@ export class AuthService {
       );
 
       // записываем рефреш токен созданному пользователю
-      const res = await this.usersRepository.updateUser(savedUser.id, {refreshTokenHash});
+      const res = await this.usersRepository.updateUser(savedUser.id, {
+        refreshTokenHash,
+      });
 
       // формируем объект ответа
       const response: RegisterResponseDto = {
         user: savedUser,
         accessToken: accessToken,
-        refreshToken
-      }
+        refreshToken,
+      };
 
       // возвращаем объект ответа
       return response;
-
     } catch (error) {
-
       // показываем ошибку
       console.log(error);
 
@@ -134,31 +147,60 @@ export class AuthService {
         const errorDriver = error.driverError;
 
         // проверяем код ошибки
-        if (errorDriver && (errorDriver.code === '23505')) {
-          throw new ConflictException('Пользователь с такой почтой уже зарегистрирован');
+        if (errorDriver && errorDriver.code === '23505') {
+          throw new ConflictException(
+            'Пользователь с такой почтой уже зарегистрирован',
+          );
         }
       }
 
       // если ошибка по другой причине передаем ее дальше
       throw error;
     }
-
-
   }
 
   // метод обновления токена
-  async refresh(refreshToken: string) {
+  async refresh(userId: string, refreshToken: string) {
     try {
-      // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
+      const user = await this.usersRepository.findByIdWithRefreshToken(userId);
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Access denied');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const payload: IJwtPayload = {
+        sub: String(user.id),
+        email: user.email,
+        roleId: user.roleId,
+      };
+
+      const tokens = await this.generateTokens(payload);
+
+      const hashSaltRounds = this.appConfig.hashSaltRounds ?? 10;
+      const newRefreshTokenHash = await bcrypt.hash(
+        tokens.refreshToken,
+        hashSaltRounds,
+      );
+
+      await this.usersRepository.updateUser(user.id, {
+        refreshTokenHash: newRefreshTokenHash,
+      });
 
       return {
-        accessToken: 'newAccessToken',
-        refreshToken: 'newRefreshToken',
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       };
     } catch (error) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Refresh token is invalid');
     }
   }
-
-
 }

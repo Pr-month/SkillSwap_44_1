@@ -1,24 +1,24 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
-  Param,
-  UnauthorizedException,
-  Patch,
   Post,
-  Delete,
   UsePipes,
   ValidationPipe,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
   @Post('register')
   register(@Body() registerRequestDto: RegisterRequestDto) {
@@ -32,11 +32,9 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
-  async refresh(@Body('token') refreshToken: string) {
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
-    return this.authService.refresh(refreshToken);
+  async refresh(@Req() req: any) {
+    return this.authService.refresh(req.user.id, req.user.refreshToken);
   }
 }
