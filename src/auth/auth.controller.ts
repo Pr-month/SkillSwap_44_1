@@ -15,10 +15,16 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
+import { AppLoggerService } from '../logger/logger.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(
+    private readonly authService: AuthService,
+    private readonly logger: AppLoggerService,
+  ) {
+    this.logger.setContext(AuthController.name);
+  }
 
   @Post('register')
   register(@Body() registerRequestDto: RegisterRequestDto) {

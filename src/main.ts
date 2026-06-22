@@ -3,18 +3,29 @@ import { AppModule } from './app.module';
 import { appConfig, TAppConfig } from './common/config/app.config';
 import { ValidationPipe } from '@nestjs/common/pipes/validation.pipe';
 import { ClassSerializerInterceptor } from '@nestjs/common';
+import { AppLoggerService } from './logger/logger.service';
+import { WinstonModule } from 'nest-winston';
+import { winstonConfig } from './logger/winston.config';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(winstonConfig),
+    bufferLogs: true,
+  });
+
+  const logger = await app.resolve(AppLoggerService);
+  logger.setContext('Bootstrap');
+
+  app.useLogger(logger);
 
   // подключаем перехватчик
-  app.useGlobalInterceptors(
-    new ClassSerializerInterceptor(app.get(Reflector)),
-  );
+  app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
 
   const config = app.get<TAppConfig>(appConfig.KEY);
   await app.listen(config.port);
+  logger.log(`Application is running on: http://localhost:${config.port}`);
+  logger.log(`Environment:  ${config.nodeEnv}`);
 }
 bootstrap();

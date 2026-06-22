@@ -1,5 +1,10 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import { ConflictException, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -29,7 +34,7 @@ export class AuthService {
 
     @Inject(jwtConfig.KEY)
     private readonly config: TJwtConfig,
-  ) { }
+  ) {}
 
   async login(loginDto: LoginDto): Promise<LoginResponseDto> {
     const email = loginDto.email.trim().toLowerCase();
@@ -48,8 +53,7 @@ export class AuthService {
     };
 
     const { accessToken, refreshToken } = await this.generateTokens(payload);
-    const hashSaltRounds =
-      this.appConfig.hashSaltRounds ?? 10;
+    const hashSaltRounds = this.appConfig.hashSaltRounds ?? 10;
     const refreshTokenHash = await bcrypt.hash(refreshToken, hashSaltRounds);
 
     await this.usersRepository.updateUser(user.id, { refreshTokenHash });
@@ -64,7 +68,8 @@ export class AuthService {
   // метод генерации токена
   private async generateTokens(payload: IJwtPayload) {
     // взял refreshTokenExpiresIn из appConfig
-    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ?? '7d') as JwtExpiresIn;
+    const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ??
+      '7d') as JwtExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload),
@@ -82,15 +87,20 @@ export class AuthService {
     const saltRounds = this.appConfig.hashSaltRounds || 10;
 
     // хешируем пароль с солью 10
-    const hashedPassword = await bcrypt.hash(registerRequestDto.password, saltRounds);
+    const hashedPassword = await bcrypt.hash(
+      registerRequestDto.password,
+      saltRounds,
+    );
 
-    
     try {
       console.log(registerRequestDto);
       console.log(hashedPassword);
 
       // крафтим нового пользователя
-      const savedUser = await this.usersRepository.createUser(registerRequestDto, hashedPassword);
+      const savedUser = await this.usersRepository.createUser(
+        registerRequestDto,
+        hashedPassword,
+      );
 
       console.log(savedUser);
 
@@ -111,20 +121,20 @@ export class AuthService {
       );
 
       // записываем рефреш токен созданному пользователю
-      const res = await this.usersRepository.updateUser(savedUser.id, {refreshTokenHash});
+      const res = await this.usersRepository.updateUser(savedUser.id, {
+        refreshTokenHash,
+      });
 
       // формируем объект ответа
       const response: RegisterResponseDto = {
         user: savedUser,
         accessToken: accessToken,
-        refreshToken
-      }
+        refreshToken,
+      };
 
       // возвращаем объект ответа
       return response;
-
     } catch (error) {
-
       // показываем ошибку
       console.log(error);
 
@@ -134,16 +144,16 @@ export class AuthService {
         const errorDriver = error.driverError;
 
         // проверяем код ошибки
-        if (errorDriver && (errorDriver.code === '23505')) {
-          throw new ConflictException('Пользователь с такой почтой уже зарегистрирован');
+        if (errorDriver && errorDriver.code === '23505') {
+          throw new ConflictException(
+            'Пользователь с такой почтой уже зарегистрирован',
+          );
         }
       }
 
       // если ошибка по другой причине передаем ее дальше
       throw error;
     }
-
-
   }
 
   // метод обновления токена
@@ -159,6 +169,4 @@ export class AuthService {
       throw new UnauthorizedException();
     }
   }
-
-
 }
