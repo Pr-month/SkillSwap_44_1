@@ -1,14 +1,10 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
-  Param,
   UnauthorizedException,
-  Patch,
   Post,
-  Delete,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -18,7 +14,7 @@ import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('register')
   register(@Body() registerRequestDto: RegisterRequestDto) {

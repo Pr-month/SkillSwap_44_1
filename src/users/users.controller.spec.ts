@@ -7,6 +7,7 @@ describe('UsersController', () => {
 
   const mockUsersService = {
     findAll: jest.fn(),
+    findById: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -25,5 +26,15 @@ describe('UsersController', () => {
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
+  });
+
+  it('should return current user', async () => {
+    const user = { id: '1', email: 'test@test.com' };
+    mockUsersService.findById.mockResolvedValue(user);
+
+    await expect(
+      controller.getCurrentUser({ user: { id: '1' } }),
+    ).resolves.toBe(user);
+    expect(mockUsersService.findById).toHaveBeenCalledWith('1');
   });
 });
