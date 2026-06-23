@@ -1,14 +1,11 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import { ConflictException, Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/entities/user.entity';
 import type { IJwtPayload, JwtExpiresIn } from './types/auth.types';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { QueryFailedError } from 'typeorm';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 import { UserRepository } from '../users/users.repository';
@@ -84,8 +81,6 @@ export class AuthService {
     // хешируем пароль с солью 10
     const hashedPassword = await bcrypt.hash(registerRequestDto.password, saltRounds);
 
-    
-    try {
       console.log(registerRequestDto);
       console.log(hashedPassword);
 
@@ -122,28 +117,6 @@ export class AuthService {
 
       // возвращаем объект ответа
       return response;
-
-    } catch (error) {
-
-      // показываем ошибку
-      console.log(error);
-
-      // проверяем ошибка возникла из-за дубликата?
-      if (error instanceof QueryFailedError) {
-        // достаем оригинальный объект ошибки
-        const errorDriver = error.driverError;
-
-        // проверяем код ошибки
-        if (errorDriver && (errorDriver.code === '23505')) {
-          throw new ConflictException('Пользователь с такой почтой уже зарегистрирован');
-        }
-      }
-
-      // если ошибка по другой причине передаем ее дальше
-      throw error;
-    }
-
-
   }
 
   // метод обновления токена
