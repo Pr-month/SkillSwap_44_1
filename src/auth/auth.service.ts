@@ -1,6 +1,5 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
 import {
-  ConflictException,
   Injectable,
   Inject,
   UnauthorizedException,
@@ -11,7 +10,6 @@ import * as bcrypt from 'bcrypt';
 import type { IJwtPayload, JwtExpiresIn } from './types/auth.types';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { QueryFailedError } from 'typeorm';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 import { UserRepository } from '../users/users.repository';
@@ -95,68 +93,47 @@ export class AuthService {
       saltRounds,
     );
 
-    try {
-      console.log(registerRequestDto);
-      console.log(hashedPassword);
+    console.log(registerRequestDto);
+    console.log(hashedPassword);
 
-      // крафтим нового пользователя
-      const savedUser = await this.usersRepository.createUser(
-        registerRequestDto,
-        hashedPassword,
-      );
+    // крафтим нового пользователя
+    const savedUser = await this.usersRepository.createUser(
+      registerRequestDto,
+      hashedPassword,
+    );
 
-      console.log(savedUser);
+    console.log(savedUser);
 
-      // формируем payload
-      const payload: IJwtPayload = {
-        sub: String(savedUser.id),
-        email: savedUser.email,
-        roleId: savedUser.roleId,
-      };
+    // формируем payload
+    const payload: IJwtPayload = {
+      sub: String(savedUser.id),
+      email: savedUser.email,
+      roleId: savedUser.roleId,
+    };
 
-      // получаем токены
-      const { accessToken, refreshToken } = await this.generateTokens(payload);
+    // получаем токены
+    const { accessToken, refreshToken } = await this.generateTokens(payload);
 
-      // хешируем рефреш токен
-      const refreshTokenHash = await bcrypt.hash(
-        refreshToken,
-        this.appConfig.hashSaltRounds,
-      );
+    // хешируем рефреш токен
+    const refreshTokenHash = await bcrypt.hash(
+      refreshToken,
+      this.appConfig.hashSaltRounds,
+    );
 
-      // записываем рефреш токен созданному пользователю
-      const res = await this.usersRepository.updateUser(savedUser.id, {
-        refreshTokenHash,
-      });
+    // записываем рефреш токен созданному пользователю
+    const res = await this.usersRepository.updateUser(savedUser.id, {
+      refreshTokenHash,
+    });
 
-      // формируем объект ответа
-      const response: RegisterResponseDto = {
-        user: savedUser,
-        accessToken: accessToken,
-        refreshToken,
-      };
+    // формируем объект ответа
+    const response: RegisterResponseDto = {
+      user: savedUser,
+      accessToken: accessToken,
+      refreshToken,
+    };
 
-      // возвращаем объект ответа
-      return response;
-    } catch (error) {
-      // показываем ошибку
-      console.log(error);
-
-      // проверяем ошибка возникла из-за дубликата?
-      if (error instanceof QueryFailedError) {
-        // достаем оригинальный объект ошибки
-        const errorDriver = error.driverError;
-
-        // проверяем код ошибки
-        if (errorDriver && errorDriver.code === '23505') {
-          throw new ConflictException(
-            'Пользователь с такой почтой уже зарегистрирован',
-          );
-        }
-      }
-
-      // если ошибка по другой причине передаем ее дальше
-      throw error;
-    }
+    // возвращаем объект ответа
+    return response;
   }
 
   // метод обновления токена
