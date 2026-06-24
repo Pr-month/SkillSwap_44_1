@@ -6,6 +6,7 @@ import { ClassSerializerInterceptor } from '@nestjs/common';
 import { AppLoggerService } from './logger/logger.service';
 import { WinstonModule } from 'nest-winston';
 import { winstonConfig } from './logger/winston.config';
+import { AllExceptionFilter } from './common/filters/all-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -22,6 +23,7 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalFilters(new AllExceptionFilter());
 
   const config = app.get<TAppConfig>(appConfig.KEY);
   await app.listen(config.port);

@@ -6,6 +6,10 @@ export interface IJwtPayload {
   roleId: number;
 }
 
+export interface AuthenticatedRequest extends Request {
+  user: IJwtPayload;
+}
+
 export type JwtExpiresIn = NonNullable<
   JwtModuleOptions['signOptions']
 >['expiresIn'];

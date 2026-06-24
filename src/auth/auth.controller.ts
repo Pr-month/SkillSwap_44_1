@@ -1,14 +1,10 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
-  Param,
   UnauthorizedException,
-  Patch,
   Post,
-  Delete,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
