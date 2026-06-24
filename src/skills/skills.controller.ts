@@ -11,18 +11,12 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { Request } from 'express';
 import { SkillsService } from './skills.service';
 import { GetSkillsQueryDto } from './dto/get-skills.dto';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-
-type RequestWithUser = Request & {
-  user: {
-    id: number;
-  };
-};
+import { AuthenticatedRequest } from '../auth/types/auth.types';
 
 @Controller('skills')
 export class SkillsController {
@@ -30,21 +24,16 @@ export class SkillsController {
 
   @Get()
   async findAll(@Query() query: GetSkillsQueryDto) {
-    return this.skillsService.findAll(
-      query.page,
-      query.limit,
-      query.search,
-      query.category,
-    );
+    return this.skillsService.findAll(query);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(
     @Body() createSkillDto: CreateSkillDto,
-    @Req() req: RequestWithUser,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.create(createSkillDto, req.user.id);
+    return this.skillsService.create(createSkillDto, Number(req.user.sub));
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,17 +41,17 @@ export class SkillsController {
   async update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateSkillDto: UpdateSkillDto,
-    @Req() req: RequestWithUser,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.update(id, updateSkillDto, req.user.id);
+    return this.skillsService.update(id, updateSkillDto, Number(req.user.sub));
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async delete(
     @Param('id', ParseIntPipe) id: number,
-    @Req() req: RequestWithUser,
+    @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.delete(id, req.user.id);
+    return this.skillsService.delete(id, Number(req.user.sub));
   }
 }

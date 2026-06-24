@@ -8,22 +8,26 @@ import { existsSync, unlinkSync } from 'fs';
 import { SkillsRepository } from './skills.repository';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
+import { GetSkillsQueryDto } from './dto/get-skills.dto';
 
 @Injectable()
 export class SkillsService {
   constructor(private readonly skillsRepository: SkillsRepository) {}
 
-  async findAll(page = 1, limit = 20, search = '', category = '') {
+  async findAll(query: GetSkillsQueryDto) {
+    const page = query.page ?? 1;
+    const limit = query.limit ?? 20;
+
     const { data, total } = await this.skillsRepository.findAllWithPagination(
       page,
       limit,
-      search,
-      category,
+      query.search ?? '',
+      query.category ?? '',
     );
 
-    const totalPages = Math.ceil(total / limit);
+    const totalPages = Math.max(1, Math.ceil(total / limit));
 
-    if (totalPages > 0 && page > totalPages) {
+    if (page > totalPages) {
       throw new NotFoundException(
         `Page ${page} not found. Total pages: ${totalPages}`,
       );

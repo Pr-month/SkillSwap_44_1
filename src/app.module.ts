@@ -6,7 +6,11 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { appConfig } from './common/config/app.config';
 import { jwtConfig } from './common/config/jwt.config';
+import { LoggerModule } from './logger/logger.module';
 import { SkillsModule } from './skills/skills.module';
+import { FilesModule } from './files/files.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -28,9 +32,16 @@ import { SkillsModule } from './skills/skills.module';
       }),
     }),
 
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public', 'uploads'),
+      serveRoot: '/public/uploads',
+    }),
+
     AuthModule,
     UsersModule,
+    LoggerModule,
     SkillsModule,
+    FilesModule,
   ],
   controllers: [],
   providers: [],

@@ -7,6 +7,7 @@ import {
   JoinColumn,
 } from 'typeorm';
 import { Category } from './category.entity';
+import { User } from '../../users/entities/user.entity';
 
 @Entity('skills')
 export class Skill {
@@ -31,6 +32,13 @@ export class Skill {
 
   @Column({ type: 'bigint', name: 'owner_id' })
   ownerId: number;
+
+  @ManyToOne(() => User, {
+    nullable: false,
+    eager: true,
+  })
+  @JoinColumn({ name: 'owner_id' })
+  owner: User;
 
   @CreateDateColumn({ type: 'timestamptz', name: 'created_at' })
   createdAt: Date;
