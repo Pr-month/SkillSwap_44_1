@@ -1,4 +1,5 @@
 import type { JwtModuleOptions } from '@nestjs/jwt';
+import type { Request } from 'express';
 
 export interface IJwtPayload {
   sub: string;
@@ -7,7 +8,9 @@ export interface IJwtPayload {
 }
 
 export interface AuthenticatedRequest extends Request {
-  user: IJwtPayload;
+  user: {
+    id: string;
+  };
 }
 
 export type JwtExpiresIn = NonNullable<
