@@ -8,6 +8,7 @@ import * as bcrypt from 'bcrypt';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { User } from './entities/user.entity';
 import { UserRepository } from './users.repository';
+import { AppLoggerService } from '../logger/logger.service';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 import { appConfig, TAppConfig } from '../common/config/app.config';
 
@@ -15,12 +16,21 @@ import { appConfig, TAppConfig } from '../common/config/app.config';
 export class UsersService {
   constructor(
     private readonly usersRepository: UserRepository,
+    private readonly logger: AppLoggerService,
     @Inject(appConfig.KEY)
     private readonly config: TAppConfig,
-  ) {}
+  ) {
+    this.logger.setContext(UsersService.name);
+  }
 
   async findAll(): Promise<User[]> {
-    return this.usersRepository.findAll();
+    this.logger.log('Fetching user');
+    const res = await this.usersRepository.findAll();
+    this.logger.log('Fetching user', {
+      usersCount: res.length,
+      userExample: res[1],
+    });
+    return res;
   }
 
   async findById(id: string): Promise<User | null> {
