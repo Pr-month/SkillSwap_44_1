@@ -48,4 +48,21 @@ export class UserRepository extends Repository<User> {
     const res = await this.update(userId, { ...values });
     return res;
   }
+
+  async findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.findOne({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        roleId: true,
+        refreshTokenHash: true,
+      },
+    });
+  }
+
+  async clearRefreshToken(userId: string) {
+    const res = await this.update(userId, { refreshTokenHash: null });
+    return res;
+  }
 }
