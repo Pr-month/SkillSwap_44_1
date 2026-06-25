@@ -1,4 +1,3 @@
-import { IsDateString } from "class-validator";
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Status } from "../enum/status.enum";
 import { User } from "../../users/entities/user.entity";
@@ -10,7 +9,6 @@ export class Requests {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: string;
 
-    @IsDateString()
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date;
 
@@ -23,10 +21,10 @@ export class Requests {
     @Column({ type: 'enum', enum: Status, default: Status.PENDING })
     status: Status;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'text' })
     offeredSkill: string;
 
-    @Column({ type: 'text', nullable: true })
+    @Column({ type: 'text' })
     requestedSkill: string;
 
     @Column({ type: 'boolean', default: false  })
