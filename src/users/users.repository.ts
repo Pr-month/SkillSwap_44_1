@@ -14,6 +14,10 @@ export class UserRepository extends Repository<User> {
     return this.find();
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.findOne({ where: { id } });
+  }
+
   async findByEmailWithPassword(email: string): Promise<User | null> {
     return this.createQueryBuilder('user')
       .addSelect('user.passwordHash')
@@ -37,13 +41,28 @@ export class UserRepository extends Repository<User> {
 
     const savedUser = await this.save(newUser);
 
-    console.log(savedUser);
-
     return savedUser;
   }
 
   async updateUser(userId: string, values: Partial<User>) {
     const res = await this.update(userId, { ...values });
+    return res;
+  }
+
+  async findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.findOne({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        roleId: true,
+        refreshTokenHash: true,
+      },
+    });
+  }
+
+  async clearRefreshToken(userId: string) {
+    const res = await this.update(userId, { refreshTokenHash: null });
     return res;
   }
 }

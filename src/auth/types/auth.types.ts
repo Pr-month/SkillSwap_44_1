@@ -1,4 +1,5 @@
 import type { JwtModuleOptions } from '@nestjs/jwt';
+import type { Request } from 'express';
 
 export interface IJwtPayload {
   sub: string;

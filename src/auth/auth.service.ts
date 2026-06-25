@@ -1,19 +1,11 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import {
-  ConflictException,
-  Injectable,
-  Inject,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { User } from '../users/entities/user.entity';
 import type { IJwtPayload, JwtExpiresIn } from './types/auth.types';
 import { LoginDto } from './dto/login.dto';
 import { LoginResponseDto } from './dto/login-response.dto';
-import { QueryFailedError } from 'typeorm';
 import { RegisterResponseDto } from './dto/register-response.dto';
 import { jwtConfig, TJwtConfig } from '../common/config/jwt.config';
 import { UserRepository } from '../users/users.repository';
@@ -67,13 +59,18 @@ export class AuthService {
 
   // метод генерации токена
   private async generateTokens(payload: IJwtPayload) {
-    // взял refreshTokenExpiresIn из appConfig
+    const accessTokenExpiresIn = (this.config.accessTokenExpiresIn ??
+      '1h') as JwtExpiresIn;
     const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ??
       '7d') as JwtExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
+        secret: this.config.accessToken,
+        expiresIn: accessTokenExpiresIn,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.config.refreshToken,
         expiresIn: refreshTokenExpiresIn,
       }),
     ]);
@@ -92,7 +89,6 @@ export class AuthService {
       saltRounds,
     );
 
-    try {
       console.log(registerRequestDto);
       console.log(hashedPassword);
 
@@ -121,7 +117,7 @@ export class AuthService {
       );
 
       // записываем рефреш токен созданному пользователю
-      const res = await this.usersRepository.updateUser(savedUser.id, {
+      await this.usersRepository.updateUser(savedUser.id, {
         refreshTokenHash,
       });
 
@@ -134,30 +130,12 @@ export class AuthService {
 
       // возвращаем объект ответа
       return response;
-    } catch (error) {
-      // показываем ошибку
-      console.log(error);
-
-      // проверяем ошибка возникла из-за дубликата?
-      if (error instanceof QueryFailedError) {
-        // достаем оригинальный объект ошибки
-        const errorDriver = error.driverError;
-
-        // проверяем код ошибки
-        if (errorDriver && errorDriver.code === '23505') {
-          throw new ConflictException(
-            'Пользователь с такой почтой уже зарегистрирован',
-          );
-        }
-      }
-
-      // если ошибка по другой причине передаем ее дальше
-      throw error;
-    }
   }
 
   // метод обновления токена
-  async refresh(refreshToken: string) {
+  refresh(refreshToken: string) {
+    void refreshToken;
+
     try {
       // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
 
@@ -165,8 +143,42 @@ export class AuthService {
         accessToken: 'newAccessToken',
         refreshToken: 'newRefreshToken',
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException();
+    }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync<IJwtPayload>(
+        refreshToken,
+        {
+          secret: this.config.refreshToken,
+        },
+      );
+
+      const user = await this.usersRepository.findByIdWithRefreshToken(
+        payload.sub,
+      );
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      await this.usersRepository.clearRefreshToken(user.id);
+
+      return { message: 'Logged out successfully' };
+    } catch {
+      throw new UnauthorizedException('Refresh token is invalid');
     }
   }
 }

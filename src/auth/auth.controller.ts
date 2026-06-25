@@ -1,24 +1,27 @@
 import {
   Body,
   Controller,
-  Get,
   HttpCode,
   HttpStatus,
-  Param,
   UnauthorizedException,
-  Patch,
   Post,
-  Delete,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
+import { AppLoggerService } from '../logger/logger.service';
+import { LogoutDto } from './dto/logout.dto';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly logger: AppLoggerService,
+  ) {
+    this.logger.setContext(AuthController.name);
+  }
 
   @Post('register')
   register(@Body() registerRequestDto: RegisterRequestDto) {
@@ -33,10 +36,16 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body('token') refreshToken: string) {
+  refresh(@Body('token') refreshToken: string) {
     if (!refreshToken) {
       throw new UnauthorizedException();
     }
     return this.authService.refresh(refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Body() logoutDto: LogoutDto) {
+    return this.authService.logout(logoutDto.token);
   }
 }
