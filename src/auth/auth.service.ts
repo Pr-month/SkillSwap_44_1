@@ -120,17 +120,17 @@ export class AuthService {
       this.appConfig.hashSaltRounds,
     );
 
-    // записываем рефреш токен созданному пользователю
-    const res = await this.usersRepository.updateUser(savedUser.id, {
-      refreshTokenHash,
-    });
+      // записываем рефреш токен созданному пользователю
+      await this.usersRepository.updateUser(savedUser.id, {
+        refreshTokenHash,
+      });
 
-    // формируем объект ответа
-    const response: RegisterResponseDto = {
-      user: savedUser,
-      accessToken: accessToken,
-      refreshToken,
-    };
+      // формируем объект ответа
+      const response: RegisterResponseDto = {
+        user: savedUser,
+        accessToken: accessToken,
+        refreshToken,
+      };
 
     // возвращаем объект ответа
     return response;
@@ -176,7 +176,41 @@ export class AuthService {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       };
-    } catch (error) {
+    } catch {
+      throw new UnauthorizedException();
+    }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync<IJwtPayload>(
+        refreshToken,
+        {
+          secret: this.config.refreshToken,
+        },
+      );
+
+      const user = await this.usersRepository.findByIdWithRefreshToken(
+        payload.sub,
+      );
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      await this.usersRepository.clearRefreshToken(user.id);
+
+      return { message: 'Logged out successfully' };
+    } catch {
       throw new UnauthorizedException('Refresh token is invalid');
     }
   }

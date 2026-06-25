@@ -62,4 +62,9 @@ export class UserRepository extends Repository<User> {
       },
     });
   }
+
+  async clearRefreshToken(userId: string) {
+    const res = await this.update(userId, { refreshTokenHash: null });
+    return res;
+  }
 }
