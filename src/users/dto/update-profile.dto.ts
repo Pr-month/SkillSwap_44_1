@@ -22,7 +22,7 @@ export class UpdateProfileDto {
 
   @IsOptional()
   @IsDateString()
-  @Transform(({ value }) => value ? new Date(value) : undefined)
+  @Transform(({ value }) => (value ? new Date(value) : undefined))
   birthdate?: Date;
 
   @IsOptional()

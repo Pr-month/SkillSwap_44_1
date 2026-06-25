@@ -12,6 +12,7 @@ import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
 import { AppLoggerService } from '../logger/logger.service';
+import { LogoutDto } from './dto/logout.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -35,10 +36,16 @@ export class AuthController {
   }
 
   @Post('refresh')
-  async refresh(@Body('token') refreshToken: string) {
+  refresh(@Body('token') refreshToken: string) {
     if (!refreshToken) {
       throw new UnauthorizedException();
     }
     return this.authService.refresh(refreshToken);
+  }
+
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Body() logoutDto: LogoutDto) {
+    return this.authService.logout(logoutDto.token);
   }
 }

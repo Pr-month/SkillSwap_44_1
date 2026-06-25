@@ -60,7 +60,7 @@ export class UsersController {
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
     await this.usersService.updatePassword(req.user.sub, updatePasswordDto);
-    
+
     return { message: 'Пароль изменён' };
   }
 }
