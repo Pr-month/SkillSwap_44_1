@@ -8,9 +8,7 @@ export interface IJwtPayload {
 }
 
 export interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-  };
+  user: IJwtPayload;
 }
 
 export type JwtExpiresIn = NonNullable<

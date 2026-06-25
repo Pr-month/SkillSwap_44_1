@@ -26,7 +26,7 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getCurrentUser(@Request() req: AuthenticatedRequest) {
-    const user = await this.usersService.findById(req.user.id);
+    const user = await this.usersService.findById(req.user.sub);
 
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
@@ -42,7 +42,7 @@ export class UsersController {
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
     const user = await this.usersService.updateProfile(
-      req.user.id,
+      req.user.sub,
       updateProfileDto,
     );
 
@@ -59,7 +59,7 @@ export class UsersController {
     @Request() req: AuthenticatedRequest,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    await this.usersService.updatePassword(req.user.id, updatePasswordDto);
+    await this.usersService.updatePassword(req.user.sub, updatePasswordDto);
     
     return { message: 'Пароль изменён' };
   }
