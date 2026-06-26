@@ -1,6 +1,7 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Status } from "../enum/status.enum";
 import { User } from "../../users/entities/user.entity";
+import { Skill } from "../../skills/entities/skill.entity";
 
 
 @Entity('requests')
@@ -9,7 +10,7 @@ export class Requests {
     @PrimaryGeneratedColumn({ type: 'bigint' })
     id: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @CreateDateColumn({ type: 'timestamp', name: 'created_at' })
     createdAt: Date;
 
     @ManyToOne(() => User)
@@ -21,11 +22,11 @@ export class Requests {
     @Column({ type: 'enum', enum: Status, default: Status.PENDING })
     status: Status;
 
-    @Column({ type: 'text' })
-    offeredSkill: string;
+    @ManyToOne(() => Skill)
+    offeredSkill: Skill;
 
-    @Column({ type: 'text' })
-    requestedSkill: string;
+    @ManyToOne(() => Skill)
+    requestedSkill: Skill;
 
     @Column({ type: 'boolean', default: false  })
     isRead: boolean;
