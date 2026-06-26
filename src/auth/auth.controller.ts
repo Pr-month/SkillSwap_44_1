@@ -3,14 +3,17 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
-  UnauthorizedException,
   Post,
   UsePipes,
   ValidationPipe,
+  UseGuards,
+  Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { LoginDto } from './dto/login.dto';
+import { RefreshTokenGuard } from './guards/refresh-token.guard';
+import { RequestWithRefreshToken } from './types/auth.types';
 import { AppLoggerService } from '../logger/logger.service';
 import { LogoutDto } from './dto/logout.dto';
 
@@ -35,12 +38,10 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('refresh')
-  refresh(@Body('token') refreshToken: string) {
-    if (!refreshToken) {
-      throw new UnauthorizedException();
-    }
-    return this.authService.refresh(refreshToken);
+  async refresh(@Request() req: RequestWithRefreshToken) {
+    return this.authService.refresh(req.user.sub, req.user.refreshToken);
   }
 
   @Post('logout')

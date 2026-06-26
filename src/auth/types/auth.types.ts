@@ -14,3 +14,9 @@ export interface AuthenticatedRequest extends Request {
 export type JwtExpiresIn = NonNullable<
   JwtModuleOptions['signOptions']
 >['expiresIn'];
+
+export interface RequestWithRefreshToken extends Request {
+  user: IJwtPayload & {
+    refreshToken: string;
+  };
+}

@@ -41,6 +41,8 @@ export class UserRepository extends Repository<User> {
 
     const savedUser = await this.save(newUser);
 
+    console.log(savedUser);
+
     return savedUser;
   }
 

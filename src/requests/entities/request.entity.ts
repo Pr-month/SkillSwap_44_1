@@ -31,3 +31,5 @@ export class Requests {
     @Column({ type: 'boolean', default: false  })
     isRead: boolean;
 }
+
+export class Request {}
