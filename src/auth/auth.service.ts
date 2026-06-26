@@ -1,5 +1,9 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -89,32 +93,32 @@ export class AuthService {
       saltRounds,
     );
 
-      console.log(registerRequestDto);
-      console.log(hashedPassword);
+    console.log(registerRequestDto);
+    console.log(hashedPassword);
 
-      // крафтим нового пользователя
-      const savedUser = await this.usersRepository.createUser(
-        registerRequestDto,
-        hashedPassword,
-      );
+    // крафтим нового пользователя
+    const savedUser = await this.usersRepository.createUser(
+      registerRequestDto,
+      hashedPassword,
+    );
 
-      console.log(savedUser);
+    console.log(savedUser);
 
-      // формируем payload
-      const payload: IJwtPayload = {
-        sub: String(savedUser.id),
-        email: savedUser.email,
-        roleId: savedUser.roleId,
-      };
+    // формируем payload
+    const payload: IJwtPayload = {
+      sub: String(savedUser.id),
+      email: savedUser.email,
+      roleId: savedUser.roleId,
+    };
 
-      // получаем токены
-      const { accessToken, refreshToken } = await this.generateTokens(payload);
+    // получаем токены
+    const { accessToken, refreshToken } = await this.generateTokens(payload);
 
-      // хешируем рефреш токен
-      const refreshTokenHash = await bcrypt.hash(
-        refreshToken,
-        this.appConfig.hashSaltRounds,
-      );
+    // хешируем рефреш токен
+    const refreshTokenHash = await bcrypt.hash(
+      refreshToken,
+      this.appConfig.hashSaltRounds,
+    );
 
       // записываем рефреш токен созданному пользователю
       await this.usersRepository.updateUser(savedUser.id, {
@@ -128,20 +132,49 @@ export class AuthService {
         refreshToken,
       };
 
-      // возвращаем объект ответа
-      return response;
+    // возвращаем объект ответа
+    return response;
   }
 
   // метод обновления токена
-  refresh(refreshToken: string) {
-    void refreshToken;
-
+  async refresh(userId: string, refreshToken: string) {
     try {
-      // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
+      const user = await this.usersRepository.findByIdWithRefreshToken(userId);
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Access denied');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const payload: IJwtPayload = {
+        sub: String(user.id),
+        email: user.email,
+        roleId: user.roleId,
+      };
+
+      const tokens = await this.generateTokens(payload);
+
+      const hashSaltRounds = this.appConfig.hashSaltRounds ?? 10;
+      const newRefreshTokenHash = await bcrypt.hash(
+        tokens.refreshToken,
+        hashSaltRounds,
+      );
+
+      await this.usersRepository.updateUser(user.id, {
+        refreshTokenHash: newRefreshTokenHash,
+      });
 
       return {
-        accessToken: 'newAccessToken',
-        refreshToken: 'newRefreshToken',
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       };
     } catch {
       throw new UnauthorizedException();
