@@ -20,7 +20,10 @@ export interface UsersSeedConfig {
 
 const DEFAULT_HASH_SALT_ROUNDS = 10;
 
-function getRequiredConfigValue(name: string, value: string | undefined): string {
+function getRequiredConfigValue(
+  name: string,
+  value: string | undefined,
+): string {
   if (!value || !value.trim()) {
     throw new Error(`${name} is required for users seeding`);
   }

@@ -9,6 +9,8 @@ import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/users.enums';
 import { UsersSeedConfig, getUsersSeedConfig } from './seed-users.data';
 
+const ADMIN_ROLE_ID = Number(UserRole.ADMIN);
+
 let dataSource: DataSource | null = null;
 
 function createDataSource(databaseUrl: string): DataSource {
@@ -69,10 +71,12 @@ async function ensureAdmin(
       existingAdmin.passwordHash,
     );
 
-    if (existingAdmin.roleId !== UserRole.ADMIN || !passwordMatches) {
+    if (existingAdmin.roleId !== ADMIN_ROLE_ID || !passwordMatches) {
       await usersRepository.update(existingAdmin.id, {
-        roleId: UserRole.ADMIN,
-        passwordHash: passwordMatches ? existingAdmin.passwordHash : passwordHash,
+        roleId: ADMIN_ROLE_ID,
+        passwordHash: passwordMatches
+          ? existingAdmin.passwordHash
+          : passwordHash,
       });
     }
 
@@ -87,7 +91,7 @@ async function ensureAdmin(
       birthdate: admin.birthdate,
       city: admin.city,
       gender: admin.gender,
-      roleId: UserRole.ADMIN,
+      roleId: ADMIN_ROLE_ID,
       about: null,
       avatar: null,
       refreshTokenHash: null,
@@ -117,13 +121,17 @@ async function seedUsers(): Promise<void> {
   console.log(message);
 }
 
-seedUsers()
-  .catch((error: unknown) => {
+async function runSeedUsers(): Promise<void> {
+  try {
+    await seedUsers();
+  } catch (error: unknown) {
     console.error(error);
     process.exitCode = 1;
-  })
-  .finally(async () => {
+  } finally {
     if (dataSource?.isInitialized) {
       await dataSource.destroy();
     }
-  });
+  }
+}
+
+void runSeedUsers();
