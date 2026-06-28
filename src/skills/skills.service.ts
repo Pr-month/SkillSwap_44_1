@@ -9,10 +9,14 @@ import { SkillsRepository } from './skills.repository';
 import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { GetSkillsQueryDto } from './dto/get-skills.dto';
+import { UserRepository } from '../users/users.repository';
 
 @Injectable()
 export class SkillsService {
-  constructor(private readonly skillsRepository: SkillsRepository) {}
+  constructor(
+    private readonly skillsRepository: SkillsRepository,
+    private readonly usersRepository: UserRepository,
+  ) {}
 
   async findAll(query: GetSkillsQueryDto) {
     const page = query.page ?? 1;
@@ -75,6 +79,48 @@ export class SkillsService {
 
     return {
       success: true,
+    };
+  }
+
+  async addToFavorites(id: number, userId: string) {
+    const skill = await this.skillsRepository.findById(id);
+
+    if (!skill) {
+      throw new NotFoundException(`Skill with id ${id} not found`);
+    }
+
+    const favouriteSkills = await this.usersRepository.addFavouriteSkill(
+      userId,
+      id,
+    );
+
+    if (!favouriteSkills) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    return {
+      favouriteSkills,
+    };
+  }
+
+  async removeFromFavorites(id: number, userId: string) {
+    const skill = await this.skillsRepository.findById(id);
+
+    if (!skill) {
+      throw new NotFoundException(`Skill with id ${id} not found`);
+    }
+
+    const favouriteSkills = await this.usersRepository.removeFavouriteSkill(
+      userId,
+      id,
+    );
+
+    if (!favouriteSkills) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+
+    return {
+      favouriteSkills,
     };
   }
 

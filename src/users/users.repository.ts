@@ -67,4 +67,60 @@ export class UserRepository extends Repository<User> {
     const res = await this.update(userId, { refreshTokenHash: null });
     return res;
   }
+
+  async addFavouriteSkill(
+    userId: string,
+    skillId: number,
+  ): Promise<string[] | null> {
+    const user = await this.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        favouriteSkills: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const favouriteSkillId = String(skillId);
+    const favouriteSkills = user.favouriteSkills ?? [];
+
+    if (favouriteSkills.includes(favouriteSkillId)) {
+      return favouriteSkills;
+    }
+
+    const updatedFavouriteSkills = [...favouriteSkills, favouriteSkillId];
+
+    await this.update(userId, { favouriteSkills: updatedFavouriteSkills });
+
+    return updatedFavouriteSkills;
+  }
+
+  async removeFavouriteSkill(
+    userId: string,
+    skillId: number,
+  ): Promise<string[] | null> {
+    const user = await this.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        favouriteSkills: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const favouriteSkillId = String(skillId);
+    const updatedFavouriteSkills = (user.favouriteSkills ?? []).filter(
+      (currentSkillId) => currentSkillId !== favouriteSkillId,
+    );
+
+    await this.update(userId, { favouriteSkills: updatedFavouriteSkills });
+
+    return updatedFavouriteSkills;
+  }
 }
