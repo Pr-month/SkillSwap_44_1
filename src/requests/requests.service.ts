@@ -4,6 +4,7 @@ import { UpdateRequestDto } from './dto/update-request.dto';
 import { UserRole } from '../users/users.enums';
 import { RequestsRepository } from './requests.repository';
 import { IJwtPayload } from '../auth/types/auth.types';
+import { JwtPayload } from '@supabase/supabase-js';
 
 @Injectable()
 export class RequestsService {
@@ -17,8 +18,8 @@ export class RequestsService {
     return `This action returns incoming requests`;
   }
 
-  outgoing() {
-    return `This action returns outgoing requests`;
+  async outgoing(user: IJwtPayload) {
+    return this.requestsRepository.getOutgoingRequests(user.sub);
   }
 
   update(id: number, updateRequestDto: UpdateRequestDto) {

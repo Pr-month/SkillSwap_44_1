@@ -14,5 +14,21 @@ export class RequestsRepository extends Repository<Requests> {
         relations: { sender: true, },
      });
   }
+  
+  async getOutgoingRequests(userId: string) {
+  return this.find({
+        where: {
+        sender: {
+            id: userId,
+        },
+        },
+        relations: {
+            sender: true,
+            receiver: true,
+            offeredSkill: true,
+            requestedSkill: true,
+        },
+    });
+  }
 
 }

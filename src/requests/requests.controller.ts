@@ -19,9 +19,12 @@ export class RequestsController {
     return this.requestsService.incoming();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('outgoing')
-  outgoing() {
-    return this.requestsService.outgoing();
+  async outgoing(
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.requestsService.outgoing(req.user);
   }
 
   @Patch(':id')
