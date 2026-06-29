@@ -5,9 +5,11 @@ import { RequestsRepository } from './requests.repository';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Requests } from './entities/request.entity';
 import { UsersModule } from '../users/users.module';
+import { Skill } from '../skills/entities/skill.entity';
+import { User } from '../users/entities/user.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Requests]), UsersModule],
+  imports: [TypeOrmModule.forFeature([Requests, Skill, User]), UsersModule],
   controllers: [RequestsController],
   providers: [RequestsService, RequestsRepository],
   exports: [RequestsRepository],
