@@ -37,14 +37,15 @@ export class CategoriesController {
   }
 
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateCategoryDto: UpdateCategoryDto,
-  ) {
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
+  update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto) {
     return this.categoriesService.update(+id, updateCategoryDto);
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('ADMIN')
   remove(@Param('id') id: string) {
     return this.categoriesService.remove(+id);
   }
