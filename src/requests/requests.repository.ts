@@ -15,20 +15,34 @@ export class RequestsRepository extends Repository<Requests> {
      });
   }
   
-  async getOutgoingRequests(userId: string) {
-    return this.find({
-            where: {
-            sender: {
-                id: userId,
-            },
-            },
-            relations: {
-                sender: true,
-                receiver: true,
-                offeredSkill: true,
-                requestedSkill: true,
-            },
-        });
+    async getOutgoingRequests(userId: string) {
+        return this.createQueryBuilder('request')
+        .leftJoin('request.sender', 'sender')
+        .leftJoin('request.receiver', 'receiver')
+        .leftJoin('request.offeredSkill', 'offeredSkill')
+        .leftJoin('request.requestedSkill', 'requestedSkill')
+        .select([
+            'request.id',
+            'request.status',
+            'request.isRead',
+
+            'sender.id',
+            'sender.name',
+            'sender.avatar',
+
+            'receiver.id',
+            'receiver.name',
+            'receiver.avatar',
+
+            'offeredSkill.id',
+            'offeredSkill.title',
+
+            'requestedSkill.id',
+            'requestedSkill.title',
+        ])
+        .where('sender.id = :userId', { userId })
+        .orderBy('request.createdAt', 'DESC')
+        .getMany();
     }
 
 }
