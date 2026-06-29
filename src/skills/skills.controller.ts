@@ -37,6 +37,15 @@ export class SkillsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Post(':id/favorite')
+  async addToFavorites(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.skillsService.addToFavorites(id, req.user.sub);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -53,5 +62,14 @@ export class SkillsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.skillsService.delete(id, Number(req.user.sub));
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':id/favorite')
+  async removeFromFavorites(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.skillsService.removeFromFavorites(id, req.user.sub);
   }
 }
