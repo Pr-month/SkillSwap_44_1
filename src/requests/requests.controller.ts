@@ -10,6 +10,8 @@ import {
 import { RequestsService } from './requests.service';
 import { CreateRequestDto } from './dto/create-request.dto';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { AuthenticatedRequest } from '../auth/types/auth.types';
 
 @Controller('requests')
 export class RequestsController {
@@ -25,9 +27,12 @@ export class RequestsController {
     return this.requestsService.incoming();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get('outgoing')
-  outgoing() {
-    return this.requestsService.outgoing();
+  async outgoing(
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.requestsService.outgoing(req.user);
   }
 
   @Patch(':id')
@@ -35,8 +40,12 @@ export class RequestsController {
     return this.requestsService.update(+id, updateRequestDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.requestsService.remove(+id);
+  async delete(
+    @Param('id') id: string,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.requestsService.remove(id, req.user);
   }
 }
