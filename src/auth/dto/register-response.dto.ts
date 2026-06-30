@@ -1,7 +1,7 @@
-import { User } from "../../users/entities/user.entity";
+import { User } from '../../users/entities/user.entity';
 
 export class RegisterResponseDto {
-    user: User;
-    accessToken: string;
-    refreshToken: string;
+  user: User;
+  accessToken: string;
+  refreshToken: string;
 }

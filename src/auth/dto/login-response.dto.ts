@@ -1,5 +1,5 @@
 // изменил на энтити из users
-import {User} from '../../users/entities/user.entity'
+import { User } from '../../users/entities/user.entity';
 
 export class LoginResponseDto {
   // старый вариант

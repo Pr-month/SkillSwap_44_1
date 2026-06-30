@@ -1,26 +1,77 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { CategoriesRepository } from './categories.repository';
+import { Category } from './entities/category.entity';
 
 @Injectable()
 export class CategoriesService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(private readonly categoriesRepository: CategoriesRepository) {}
+
+  async create(createCategoryDto: CreateCategoryDto): Promise<Category> {
+    const { parentId } = createCategoryDto;
+
+    if (parentId) {
+      const parent = await this.categoriesRepository.findOne({
+        where: { id: parentId },
+      });
+
+      if (!parent) {
+        throw new NotFoundException(`Category ${parentId} not found`);
+      }
+    }
+
+    return this.categoriesRepository.createCategory(createCategoryDto);
   }
 
   findAll() {
     return `This action returns all categories`;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number): Promise<Category | null> {
+    return this.categoriesRepository.findByIdWithRelations(id);
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<Category> {
+    const category = await this.categoriesRepository.findById(id);
+    if (!category) {
+      throw new NotFoundException(`Категория ${id} не найдена`);
+    }
+
+    if (updateCategoryDto.parentId !== undefined) {
+      const parent = await this.categoriesRepository.findById(
+        updateCategoryDto.parentId,
+      );
+      if (!parent) {
+        throw new NotFoundException(
+          `Родительская категория ${updateCategoryDto.parentId} не найдена`,
+        );
+      }
+    }
+
+    const updatedCategory = await this.categoriesRepository.updateCategory(
+      id,
+      updateCategoryDto,
+    );
+    if (!updatedCategory) {
+      throw new NotFoundException(`Категория ${id} не найдена`);
+    }
+
+    return updatedCategory;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number): Promise<{ message: string }> {
+    const category = await this.categoriesRepository.findById(id);
+
+    if (!category) {
+      throw new NotFoundException(`Категория ${id} не найдена`);
+    }
+
+    await this.categoriesRepository.deleteCategory(id);
+
+    return { message: 'Категория успешно удалена' };
   }
 }

@@ -1,9 +1,5 @@
 import { appConfig, TAppConfig } from './../common/config/app.config';
-import {
-  Injectable,
-  Inject,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, Inject, UnauthorizedException } from '@nestjs/common';
 import { RegisterRequestDto } from './dto/register-request.dto';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -120,17 +116,17 @@ export class AuthService {
       this.appConfig.hashSaltRounds,
     );
 
-      // записываем рефреш токен созданному пользователю
-      await this.usersRepository.updateUser(savedUser.id, {
-        refreshTokenHash,
-      });
+    // записываем рефреш токен созданному пользователю
+    await this.usersRepository.updateUser(savedUser.id, {
+      refreshTokenHash,
+    });
 
-      // формируем объект ответа
-      const response: RegisterResponseDto = {
-        user: savedUser,
-        accessToken: accessToken,
-        refreshToken,
-      };
+    // формируем объект ответа
+    const response: RegisterResponseDto = {
+      user: savedUser,
+      accessToken: accessToken,
+      refreshToken,
+    };
 
     // возвращаем объект ответа
     return response;
