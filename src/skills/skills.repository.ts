@@ -59,7 +59,7 @@ export class SkillsRepository extends Repository<Skill> {
     };
   }
 
-  async createSkill(dto: CreateSkillDto, ownerId: number): Promise<Skill> {
+  async createSkill(dto: CreateSkillDto, ownerId: string): Promise<Skill> {
     const skill = this.create({
       title: dto.title,
       description: dto.description ?? null,

@@ -33,7 +33,7 @@ export class SkillsController {
     @Body() createSkillDto: CreateSkillDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.create(createSkillDto, Number(req.user.sub));
+    return this.skillsService.create(createSkillDto, req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -52,7 +52,7 @@ export class SkillsController {
     @Body() updateSkillDto: UpdateSkillDto,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.update(id, updateSkillDto, Number(req.user.sub));
+    return this.skillsService.update(id, updateSkillDto, req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -61,7 +61,7 @@ export class SkillsController {
     @Param('id', ParseIntPipe) id: number,
     @Req() req: AuthenticatedRequest,
   ) {
-    return this.skillsService.delete(id, Number(req.user.sub));
+    return this.skillsService.delete(id, req.user.sub);
   }
 
   @UseGuards(JwtAuthGuard)

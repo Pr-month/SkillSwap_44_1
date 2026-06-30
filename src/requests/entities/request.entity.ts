@@ -23,8 +23,7 @@ export class Requests {
   createdAt: Date;
 
   @Column({
-    type: 'enum',
-    enum: Status,
+    type: 'text',
     default: Status.PENDING,
   })
   status: Status;
@@ -35,6 +34,18 @@ export class Requests {
     default: false,
   })
   isRead: boolean;
+
+  @Column({ name: 'sender_id', type: 'bigint' })
+  senderId: string;
+
+  @Column({ name: 'receiver_id', type: 'bigint' })
+  receiverId: string;
+
+  @Column({ name: 'offered_skill_id', type: 'bigint' })
+  offeredSkillId: string;
+
+  @Column({ name: 'requested_skill_id', type: 'bigint' })
+  requestedSkillId: string;
 
   @ManyToOne(() => User, { nullable: false })
   @JoinColumn({ name: 'sender_id' })
