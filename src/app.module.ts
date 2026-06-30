@@ -28,8 +28,8 @@ import { CategoriesModule } from './categories/categories.module';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         url: config.getOrThrow<string>('DATABASE_CONFIG.url'),
+        synchronize: config.getOrThrow<boolean>('DATABASE_CONFIG.synchronize'),
         autoLoadEntities: true,
-        synchronize: false,
         ssl: {
           rejectUnauthorized: false,
         },
