@@ -26,7 +26,9 @@ describe('CategoriesRepository', () => {
       },
     ];
 
-    const findSpy = jest.spyOn(repository, 'find').mockResolvedValue(categories);
+    const findSpy = jest
+      .spyOn(repository, 'find')
+      .mockResolvedValue(categories);
 
     await expect(repository.findRootCategories()).resolves.toBe(categories);
     expect(findSpy).toHaveBeenCalledTimes(1);
