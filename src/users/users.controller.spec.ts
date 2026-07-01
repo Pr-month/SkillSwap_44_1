@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import type { AuthenticatedRequest } from '../auth/types/auth.types';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -33,7 +34,9 @@ describe('UsersController', () => {
     mockUsersService.findById.mockResolvedValue(user);
 
     await expect(
-      controller.getCurrentUser({ user: { id: '1' } }),
+      controller.getCurrentUser({
+        user: { sub: '1', email: 'test@test.com', roleId: 1 },
+      } as AuthenticatedRequest),
     ).resolves.toBe(user);
     expect(mockUsersService.findById).toHaveBeenCalledWith('1');
   });

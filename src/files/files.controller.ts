@@ -1,7 +1,17 @@
-import { Controller, Post, UseInterceptors, UploadedFile, ParseFilePipe, MaxFileSizeValidator, FileTypeValidator, PayloadTooLargeException, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFile,
+  ParseFilePipe,
+  MaxFileSizeValidator,
+  FileTypeValidator,
+  PayloadTooLargeException,
+  BadRequestException,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname } from "path";
+import { extname } from 'path';
 
 @Controller('files')
 export class FilesController {
@@ -14,13 +24,14 @@ export class FilesController {
         destination: './public/uploads',
         filename: (req, file, callback) => {
           // генерируем уникальное префикс для имени
-          const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const uniquePrefix =
+            Date.now() + '-' + Math.round(Math.random() * 1e9);
           // записываем расширение файла вместе с точкой
           const ext = extname(file.originalname);
           // составляем уникальное имя
           const uniqueName = `${uniquePrefix}${ext}`;
 
-          console.log("имя файла: " + uniqueName);
+          console.log('имя файла: ' + uniqueName);
 
           // передаем сгенерированное имя обратно в multer чтобы он использовал наше имя
           callback(null, uniqueName);
@@ -53,14 +64,12 @@ export class FilesController {
           return new PayloadTooLargeException(errorString);
         },
       }),
-    )
-    // метод uploadFiles принимает в параметр файл
+    ) // метод uploadFiles принимает в параметр файл
     file: Express.Multer.File,
   ) {
-
     console.log(file);
     // формируем публичную ссылку
-    const publicUrl = `http://localhost:3000/public/uploads/${file.filename}`
+    const publicUrl = `http://localhost:3000/public/uploads/${file.filename}`;
 
     // возвращаем ссылку в ответе
     return { url: publicUrl };

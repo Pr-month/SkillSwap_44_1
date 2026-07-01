@@ -41,11 +41,86 @@ export class UserRepository extends Repository<User> {
 
     const savedUser = await this.save(newUser);
 
+    console.log(savedUser);
+
     return savedUser;
   }
 
   async updateUser(userId: string, values: Partial<User>) {
     const res = await this.update(userId, { ...values });
     return res;
+  }
+
+  async findByIdWithRefreshToken(id: string): Promise<User | null> {
+    return this.findOne({
+      where: { id },
+      select: {
+        id: true,
+        email: true,
+        roleId: true,
+        refreshTokenHash: true,
+      },
+    });
+  }
+
+  async clearRefreshToken(userId: string) {
+    const res = await this.update(userId, { refreshTokenHash: null });
+    return res;
+  }
+
+  async addFavouriteSkill(
+    userId: string,
+    skillId: number,
+  ): Promise<string[] | null> {
+    const user = await this.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        favouriteSkills: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const favouriteSkillId = String(skillId);
+    const favouriteSkills = user.favouriteSkills ?? [];
+
+    if (favouriteSkills.includes(favouriteSkillId)) {
+      return favouriteSkills;
+    }
+
+    const updatedFavouriteSkills = [...favouriteSkills, favouriteSkillId];
+
+    await this.update(userId, { favouriteSkills: updatedFavouriteSkills });
+
+    return updatedFavouriteSkills;
+  }
+
+  async removeFavouriteSkill(
+    userId: string,
+    skillId: number,
+  ): Promise<string[] | null> {
+    const user = await this.findOne({
+      where: { id: userId },
+      select: {
+        id: true,
+        favouriteSkills: true,
+      },
+    });
+
+    if (!user) {
+      return null;
+    }
+
+    const favouriteSkillId = String(skillId);
+    const updatedFavouriteSkills = (user.favouriteSkills ?? []).filter(
+      (currentSkillId) => currentSkillId !== favouriteSkillId,
+    );
+
+    await this.update(userId, { favouriteSkills: updatedFavouriteSkills });
+
+    return updatedFavouriteSkills;
   }
 }

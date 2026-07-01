@@ -59,13 +59,18 @@ export class AuthService {
 
   // метод генерации токена
   private async generateTokens(payload: IJwtPayload) {
-    // взял refreshTokenExpiresIn из appConfig
+    const accessTokenExpiresIn = (this.config.accessTokenExpiresIn ??
+      '1h') as JwtExpiresIn;
     const refreshTokenExpiresIn = (this.config.refreshTokenExpiresIn ??
       '7d') as JwtExpiresIn;
 
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload),
       this.jwtService.signAsync(payload, {
+        secret: this.config.accessToken,
+        expiresIn: accessTokenExpiresIn,
+      }),
+      this.jwtService.signAsync(payload, {
+        secret: this.config.refreshToken,
         expiresIn: refreshTokenExpiresIn,
       }),
     ]);
@@ -84,60 +89,125 @@ export class AuthService {
       saltRounds,
     );
 
-      console.log(registerRequestDto);
-      console.log(hashedPassword);
+    console.log(registerRequestDto);
+    console.log(hashedPassword);
 
-      // крафтим нового пользователя
-      const savedUser = await this.usersRepository.createUser(
-        registerRequestDto,
-        hashedPassword,
-      );
+    // крафтим нового пользователя
+    const savedUser = await this.usersRepository.createUser(
+      registerRequestDto,
+      hashedPassword,
+    );
 
-      console.log(savedUser);
+    console.log(savedUser);
 
-      // формируем payload
-      const payload: IJwtPayload = {
-        sub: String(savedUser.id),
-        email: savedUser.email,
-        roleId: savedUser.roleId,
-      };
+    // формируем payload
+    const payload: IJwtPayload = {
+      sub: String(savedUser.id),
+      email: savedUser.email,
+      roleId: savedUser.roleId,
+    };
 
-      // получаем токены
-      const { accessToken, refreshToken } = await this.generateTokens(payload);
+    // получаем токены
+    const { accessToken, refreshToken } = await this.generateTokens(payload);
 
-      // хешируем рефреш токен
-      const refreshTokenHash = await bcrypt.hash(
-        refreshToken,
-        this.appConfig.hashSaltRounds,
-      );
+    // хешируем рефреш токен
+    const refreshTokenHash = await bcrypt.hash(
+      refreshToken,
+      this.appConfig.hashSaltRounds,
+    );
 
-      // записываем рефреш токен созданному пользователю
-      const res = await this.usersRepository.updateUser(savedUser.id, {
-        refreshTokenHash,
-      });
+    // записываем рефреш токен созданному пользователю
+    await this.usersRepository.updateUser(savedUser.id, {
+      refreshTokenHash,
+    });
 
-      // формируем объект ответа
-      const response: RegisterResponseDto = {
-        user: savedUser,
-        accessToken: accessToken,
-        refreshToken,
-      };
+    // формируем объект ответа
+    const response: RegisterResponseDto = {
+      user: savedUser,
+      accessToken: accessToken,
+      refreshToken,
+    };
 
-      // возвращаем объект ответа
-      return response;
+    // возвращаем объект ответа
+    return response;
   }
 
   // метод обновления токена
-  async refresh(refreshToken: string) {
+  async refresh(userId: string, refreshToken: string) {
     try {
-      // TODO: после создания стратегии верифицировать токен и создать новую пару токенов
+      const user = await this.usersRepository.findByIdWithRefreshToken(userId);
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Access denied');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const payload: IJwtPayload = {
+        sub: String(user.id),
+        email: user.email,
+        roleId: user.roleId,
+      };
+
+      const tokens = await this.generateTokens(payload);
+
+      const hashSaltRounds = this.appConfig.hashSaltRounds ?? 10;
+      const newRefreshTokenHash = await bcrypt.hash(
+        tokens.refreshToken,
+        hashSaltRounds,
+      );
+
+      await this.usersRepository.updateUser(user.id, {
+        refreshTokenHash: newRefreshTokenHash,
+      });
 
       return {
-        accessToken: 'newAccessToken',
-        refreshToken: 'newRefreshToken',
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException();
+    }
+  }
+
+  async logout(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync<IJwtPayload>(
+        refreshToken,
+        {
+          secret: this.config.refreshToken,
+        },
+      );
+
+      const user = await this.usersRepository.findByIdWithRefreshToken(
+        payload.sub,
+      );
+
+      if (!user || !user.refreshTokenHash) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      const isRefreshTokenValid = await bcrypt.compare(
+        refreshToken,
+        user.refreshTokenHash,
+      );
+
+      if (!isRefreshTokenValid) {
+        throw new UnauthorizedException('Refresh token is invalid');
+      }
+
+      await this.usersRepository.clearRefreshToken(user.id);
+
+      return { message: 'Logged out successfully' };
+    } catch {
+      throw new UnauthorizedException('Refresh token is invalid');
     }
   }
 }

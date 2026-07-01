@@ -10,7 +10,7 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { RequestWithUser } from './types/requestWithUser.type';
+import type { AuthenticatedRequest } from '../auth/types/auth.types';
 import { UpdatePasswordDto } from './dto/update-password.dto';
 
 @Controller('users')
@@ -25,8 +25,8 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  async getCurrentUser(@Request() req: RequestWithUser) {
-    const user = await this.usersService.findById(req.user.id);
+  async getCurrentUser(@Request() req: AuthenticatedRequest) {
+    const user = await this.usersService.findById(req.user.sub);
 
     if (!user) {
       throw new NotFoundException('Пользователь не найден');
@@ -38,11 +38,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('me')
   async updateProfile(
-    @Request() req: RequestWithUser,
+    @Request() req: AuthenticatedRequest,
     @Body() updateProfileDto: UpdateProfileDto,
   ) {
     const user = await this.usersService.updateProfile(
-      req.user.id,
+      req.user.sub,
       updateProfileDto,
     );
 
@@ -56,11 +56,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Patch('me/password')
   async updatePassword(
-    @Request() req: RequestWithUser,
+    @Request() req: AuthenticatedRequest,
     @Body() updatePasswordDto: UpdatePasswordDto,
   ) {
-    await this.usersService.updatePassword(req.user.id, updatePasswordDto);
-    
+    await this.usersService.updatePassword(req.user.sub, updatePasswordDto);
+
     return { message: 'Пароль изменён' };
   }
 }
