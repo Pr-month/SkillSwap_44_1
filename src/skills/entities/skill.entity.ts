@@ -31,11 +31,11 @@ export class Skill {
   images: string[] | null;
 
   @Column({ type: 'bigint', name: 'owner_id' })
-  ownerId: number;
+  ownerId: string;
 
   @ManyToOne(() => User, {
     nullable: false,
-    eager: true,
+    // eager: true,
   })
   @JoinColumn({ name: 'owner_id' })
   owner: User;

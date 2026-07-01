@@ -33,5 +33,4 @@ import { RefreshTokenStrategy } from './strategies/refresh-token.strategy';
   providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
   exports: [JwtModule],
 })
-
 export class AuthModule {}

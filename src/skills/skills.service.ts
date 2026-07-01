@@ -44,32 +44,32 @@ export class SkillsService {
     };
   }
 
-  async create(createSkillDto: CreateSkillDto, ownerId: number) {
+  async create(createSkillDto: CreateSkillDto, ownerId: string) {
     return this.skillsRepository.createSkill(createSkillDto, ownerId);
   }
 
-  async update(id: number, updateSkillDto: UpdateSkillDto, userId: number) {
+  async update(id: number, updateSkillDto: UpdateSkillDto, userId: string) {
     const skill = await this.skillsRepository.findById(id);
 
     if (!skill) {
       throw new NotFoundException(`Skill with id ${id} not found`);
     }
 
-    if (Number(skill.ownerId) !== Number(userId)) {
+    if (skill.ownerId !== userId) {
       throw new ForbiddenException('Недостаточно прав');
     }
 
     return this.skillsRepository.updateSkill(id, updateSkillDto);
   }
 
-  async delete(id: number, userId: number) {
+  async delete(id: number, userId: string) {
     const skill = await this.skillsRepository.findById(id);
 
     if (!skill) {
       throw new NotFoundException(`Skill with id ${id} not found`);
     }
 
-    if (Number(skill.ownerId) !== Number(userId)) {
+    if (skill.ownerId !== userId) {
       throw new ForbiddenException('Недостаточно прав');
     }
 

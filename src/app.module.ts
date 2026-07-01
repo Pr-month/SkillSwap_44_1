@@ -33,6 +33,11 @@ import { CategoriesModule } from './categories/categories.module';
         ssl: {
           rejectUnauthorized: false,
         },
+        extra: {
+          ssl: {
+            rejectUnauthorized: false,
+          },
+        },
       }),
     }),
 

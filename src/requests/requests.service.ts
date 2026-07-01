@@ -1,53 +1,57 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { CreateRequestDto } from './dto/create-request.dto';
-import { UpdateRequestDto } from './dto/update-request.dto';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { UserRole } from '../users/users.enums';
 import { RequestsRepository } from './requests.repository';
 import { IJwtPayload } from '../auth/types/auth.types';
-import { JwtPayload } from '@supabase/supabase-js';
+import { CreateRequestDto } from './dto/create-request.dto';
 
 @Injectable()
 export class RequestsService {
   constructor(private readonly requestsRepository: RequestsRepository) {}
 
-  create(createRequestDto: CreateRequestDto) {
-    return 'This action adds a new request';
-  }
+  async create(createRequestDto: CreateRequestDto, user: IJwtPayload) {
+    const { offeredSkillId, requestedSkillId } = createRequestDto;
 
-  incoming() {
-    return `This action returns incoming requests`;
+    if (offeredSkillId === requestedSkillId) {
+      throw new BadRequestException(
+        'Offered and requested skills must be different',
+      );
+    }
+
+    return this.requestsRepository.createRequest({
+      offeredSkillId,
+      requestedSkillId,
+      userId: user.sub,
+    });
   }
 
   async outgoing(user: IJwtPayload) {
     return this.requestsRepository.getOutgoingRequests(user.sub);
   }
 
-  update(id: number, updateRequestDto: UpdateRequestDto) {
-    return `This action updates a #${id} request`;
-  }
-
   async remove(id: string, user: IJwtPayload) {
     const request = await this.requestsRepository.findById(id);
 
     if (!request) {
-      throw new NotFoundException(`request with id ${id} not found`);
+      throw new NotFoundException(`Request with id ${id} not found`);
     }
 
-    const admin = user.roleId === UserRole.ADMIN;
+    const isAdmin = user.roleId === UserRole.ADMIN;
+    const isOwner = String(request.senderId) === String(user.sub);
 
-    const owner = request.sender.id === user.sub;
-
-    if (!admin && !owner) {
-      throw new ForbiddenException(
-        'you can delete only your own requests',
-      );
+    if (!isAdmin && !isOwner) {
+      throw new ForbiddenException('You can delete only your own requests');
     }
 
-    await this.requestsRepository.remove(request);
+    await this.requestsRepository.delete({ id });
 
     return {
-      message: 'request is deleted',
+      message: 'Request is deleted',
+      id,
     };
-
   }
 }

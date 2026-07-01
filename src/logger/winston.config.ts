@@ -5,59 +5,48 @@ import { appConfig } from '../common/config/app.config';
 
 const config = appConfig();
 
-/**
- * 🎨 ФОРМАТ ДЛЯ РАЗРАБОТКИ
- */
 const developmentFormat = winston.format.combine(
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.colorize({ all: true }),
   winston.format.printf(
     ({ timestamp, level, message, context, trace, ...meta }) => {
-      // Универсальное преобразование в строку с проверкой
-      const toString = (value: unknown, fallback: string = ''): string => {
-        if (typeof value === 'string') return value;
-        if (typeof value === 'number') return String(value);
-        if (typeof value === 'boolean') return String(value);
-        if (value === null || value === undefined) return fallback;
-
-        // Если это объект — возвращаем fallback или JSON
-        if (typeof value === 'object') {
-          try {
-            return JSON.stringify(value);
-          } catch {
-            return fallback || '[unserializable]';
-          }
+      const safeStringify = (value: unknown): string => {
+        try {
+          return JSON.stringify(value, null, 2);
+        } catch {
+          return '[unserializable]';
         }
-        // Если что-то другое (символ, функция) — fallback
-        return fallback;
       };
 
-      const timestampStr = toString(timestamp);
-      const contextStr = toString(context, 'App');
-      const traceStr = toString(trace);
-      const messageStr = toString(message);
+      const timestampStr = typeof timestamp === 'string' ? timestamp : '';
 
-      let log = `🕐 ${timestampStr} | ${level} | 📦 [${contextStr}]`;
-      log += `\n   💬 ${messageStr}`;
+      const contextStr = typeof context === 'string' ? context : 'App';
+
+      const messageStr =
+        typeof message === 'string' ? message : JSON.stringify(message);
+
+      const traceStr = typeof trace === 'string' ? trace : '';
 
       const metaKeys = Object.keys(meta);
+
+      const lines = [
+        `${timestampStr} ${level.toUpperCase().padEnd(5)} [${contextStr}] ${messageStr}`,
+      ];
+
       if (metaKeys.length > 0) {
-        log += `\n   📋 ${JSON.stringify(meta, null, 2)}`;
+        lines.push(safeStringify(meta));
       }
 
       if (traceStr) {
-        log += `\n   ⚠️  Stack:\n${traceStr}`;
+        lines.push(`Stack:\n${traceStr}`);
       }
 
-      return log;
+      return lines.join('\n');
     },
   ),
 );
 
-/**
- * ФОРМАТ ДЛЯ PRODUCTION
- */
 const productionFormat = winston.format.combine(
   winston.format.timestamp(),
   winston.format.errors({ stack: true }),
@@ -88,15 +77,11 @@ const productionFormat = winston.format.combine(
   }),
 );
 
-/**
- * ГЛАВНАЯ КОНФИГУРАЦИЯ С РОТАЦИЕЙ
- */
 export const winstonConfig: LoggerOptions = {
   level:
     config.logLevel || (config.nodeEnv === 'production' ? 'info' : 'debug'),
 
   transports: ((): winston.transport[] => {
-    // === PRODUCTION ===
     if (config.nodeEnv === 'production') {
       return [
         new winston.transports.Console({
@@ -120,7 +105,6 @@ export const winstonConfig: LoggerOptions = {
       ];
     }
 
-    // === DEVELOPMENT ===
     return [
       new winston.transports.Console({
         format: developmentFormat,
