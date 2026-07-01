@@ -24,8 +24,8 @@ export class CategoriesService {
     return this.categoriesRepository.createCategory(createCategoryDto);
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  findAll(): Promise<Category[]> {
+    return this.categoriesRepository.findRootCategories();
   }
 
   async findOne(id: number): Promise<Category | null> {
