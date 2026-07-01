@@ -1,6 +1,6 @@
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, IsNull, Repository } from 'typeorm';
 import { Category } from './entities/category.entity';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
@@ -22,6 +22,15 @@ export class CategoriesRepository extends Repository<Category> {
   async findById(id: number): Promise<Category | null> {
     return this.findOne({
       where: { id },
+    });
+  }
+
+  async findRootCategories(): Promise<Category[]> {
+    return this.find({
+      where: { parentId: IsNull() },
+      relations: {
+        children: true,
+      },
     });
   }
 
