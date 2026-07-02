@@ -36,6 +36,10 @@ export class User {
   @Column({ type: 'varchar', length: 30 })
   city: string;
 
+  // @ManyToOne(() => City, (city) => city.users)
+  // @JoinColumn({ name: 'city_id' })
+  // city: City;
+
   @Column({ type: 'enum', enum: Gender })
   gender: Gender;
 
