@@ -23,12 +23,14 @@ describe('RequestsRepository', () => {
       },
     ] as Requests[];
 
-    jest.spyOn(repository, 'find').mockResolvedValue(incomingRequests);
+    const findSpy = jest
+      .spyOn(repository, 'find')
+      .mockResolvedValue(incomingRequests);
 
     await expect(repository.getIncomingRequests('2')).resolves.toBe(
       incomingRequests,
     );
-    expect(repository.find).toHaveBeenCalledWith({
+    expect(findSpy).toHaveBeenCalledWith({
       where: [
         {
           receiver: {
