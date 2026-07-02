@@ -68,6 +68,61 @@ export class RequestsRepository extends Repository<Requests> {
     });
   }
 
+  async getIncomingRequests(userId: string) {
+    return this.find({
+      where: [
+        {
+          receiver: {
+            id: userId,
+          },
+          status: Status.PENDING,
+        },
+        {
+          receiver: {
+            id: userId,
+          },
+          status: Status.INPROGRESS,
+        },
+      ],
+      relations: {
+        sender: true,
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      select: {
+        id: true,
+        status: true,
+        isRead: true,
+
+        sender: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+
+        receiver: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+
+        offeredSkill: {
+          id: true,
+          title: true,
+        },
+
+        requestedSkill: {
+          id: true,
+          title: true,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+    });
+  }
+
   async createRequest(data: {
     offeredSkillId: string;
     requestedSkillId: string;

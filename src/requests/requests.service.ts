@@ -33,6 +33,10 @@ export class RequestsService {
     return this.requestsRepository.getOutgoingRequests(user.sub);
   }
 
+  async incoming(user: IJwtPayload) {
+    return this.requestsRepository.getIncomingRequests(user.sub);
+  }
+
   async remove(id: string, user: IJwtPayload) {
     const request = await this.requestsRepository.findById(id);
 

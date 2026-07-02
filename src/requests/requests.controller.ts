@@ -25,6 +25,12 @@ export class RequestsController {
   }
 
   @UseGuards(JwtAuthGuard)
+  @Get('incoming')
+  async incoming(@Req() req: AuthenticatedRequest) {
+    return this.requestsService.incoming(req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async delete(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     console.log('Delete request called with id:', id, 'by user:', req.user);
