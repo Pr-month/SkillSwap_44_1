@@ -1,4 +1,4 @@
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, EntityManager, Repository } from 'typeorm';
 import { Requests } from './entities/request.entity';
 import {
   BadRequestException,
@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { Skill } from '../skills/entities/skill.entity';
 import { Status } from './enum/status.enum';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class RequestsRepository extends Repository<Requests> {
@@ -121,6 +122,131 @@ export class RequestsRepository extends Repository<Requests> {
         createdAt: 'DESC',
       },
     });
+  }
+
+  async updateIncomingStatus(
+    id: string,
+    status: Status,
+    receiverId: string,
+  ): Promise<Requests | null> {
+    await this.dataSource.transaction(async (manager) => {
+      const request = await manager.findOne(Requests, {
+        where: { id },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!request) {
+        throw new NotFoundException(`Заявка с id ${id} не найдена`);
+      }
+
+      if (String(request.receiverId) !== String(receiverId)) {
+        throw new ForbiddenException('Можно обновить только входящую заявку');
+      }
+
+      const activeStatuses: Status[] = [Status.PENDING, Status.INPROGRESS];
+
+      if (!activeStatuses.includes(request.status)) {
+        throw new BadRequestException(
+          'Можно обновить только актуальную заявку',
+        );
+      }
+
+      if (status === Status.ACCEPTED) {
+        await this.addExchangeSkillsToUsers(manager, [
+          {
+            userId: request.receiverId,
+            skillId: request.offeredSkillId,
+          },
+          {
+            userId: request.senderId,
+            skillId: request.requestedSkillId,
+          },
+        ]);
+      }
+
+      await manager.update(Requests, id, {
+        status,
+        isRead: true,
+      });
+    });
+
+    return this.findRequestWithDetails(id);
+  }
+
+  private async findRequestWithDetails(id: string): Promise<Requests | null> {
+    return this.findOne({
+      where: { id },
+      relations: {
+        sender: true,
+        receiver: true,
+        offeredSkill: true,
+        requestedSkill: true,
+      },
+      select: {
+        id: true,
+        status: true,
+        isRead: true,
+
+        sender: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+
+        receiver: {
+          id: true,
+          name: true,
+          avatar: true,
+        },
+
+        offeredSkill: {
+          id: true,
+          title: true,
+        },
+
+        requestedSkill: {
+          id: true,
+          title: true,
+        },
+      },
+    });
+  }
+
+  private async addExchangeSkillsToUsers(
+    manager: EntityManager,
+    exchanges: { userId: string; skillId: string }[],
+  ) {
+    const sortedExchanges = [...exchanges].sort((first, second) =>
+      String(first.userId).localeCompare(String(second.userId)),
+    );
+
+    for (const exchange of sortedExchanges) {
+      const user = await manager.findOne(User, {
+        where: { id: exchange.userId },
+        select: {
+          id: true,
+          skills: true,
+        },
+        lock: { mode: 'pessimistic_write' },
+      });
+
+      if (!user) {
+        throw new NotFoundException(
+          `Пользователь с id ${exchange.userId} не найден`,
+        );
+      }
+
+      const currentSkills = user.skills ?? [];
+      const exchangeSkillId = String(exchange.skillId);
+
+      if (currentSkills.includes(exchangeSkillId)) {
+        continue;
+      }
+
+      await manager.update(User, exchange.userId, {
+        skills: [...currentSkills, exchangeSkillId],
+      });
+    }
   }
 
   async createRequest(data: {

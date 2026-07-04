@@ -8,6 +8,7 @@ import { UserRole } from '../users/users.enums';
 import { RequestsRepository } from './requests.repository';
 import { IJwtPayload } from '../auth/types/auth.types';
 import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
 
 @Injectable()
 export class RequestsService {
@@ -35,6 +36,18 @@ export class RequestsService {
 
   async incoming(user: IJwtPayload) {
     return this.requestsRepository.getIncomingRequests(user.sub);
+  }
+
+  async update(
+    id: string,
+    updateRequestDto: UpdateRequestDto,
+    user: IJwtPayload,
+  ) {
+    return this.requestsRepository.updateIncomingStatus(
+      id,
+      updateRequestDto.status,
+      user.sub,
+    );
   }
 
   async remove(id: string, user: IJwtPayload) {
