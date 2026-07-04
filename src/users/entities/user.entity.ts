@@ -11,6 +11,7 @@ import {
 import { Gender } from '../users.enums';
 import { Role } from './role.entity';
 import { Exclude } from 'class-transformer';
+import { City } from '../../cities/entities/cities.entity';
 
 @Entity('users')
 export class User {
@@ -33,12 +34,12 @@ export class User {
   @Column({ type: 'date' })
   birthdate: Date;
 
-  @Column({ type: 'varchar', length: 30 })
-  city: string;
-
-  // @ManyToOne(() => City, (city) => city.users)
-  // @JoinColumn({ name: 'city_id' })
-  // city: City;
+  @ManyToOne(() => City, (city) => city.users, {
+    nullable: false,
+    eager: true,
+  })
+  @JoinColumn({ name: 'city_id' })
+  city: City;
 
   @Column({ type: 'enum', enum: Gender })
   gender: Gender;

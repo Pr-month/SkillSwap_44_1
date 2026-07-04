@@ -1,7 +1,6 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../../users/entities/user.entity";
 
-
 @Entity('cities')
 export class City {
   @PrimaryGeneratedColumn({ type: 'bigint' })
@@ -10,8 +9,6 @@ export class City {
   @Column({ type: 'varchar' })
   name: string;
 
-  @OneToMany(() => User, (user) => user.city, {
-    nullable: false,
-  })
+  @OneToMany(() => User, (user) => user.city )
   users: User[]
 }
