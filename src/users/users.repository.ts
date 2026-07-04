@@ -20,6 +20,8 @@ export class UserRepository extends Repository<User> {
 
   async findByEmailWithPassword(email: string): Promise<User | null> {
     return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.city', 'city')
       .addSelect('user.passwordHash')
       .where('LOWER(user.email) = :email', { email: email.toLowerCase() })
       .getOne();

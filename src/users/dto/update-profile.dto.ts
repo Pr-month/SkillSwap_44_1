@@ -28,7 +28,7 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   @MaxLength(30)
-  city?: string;
+  cityId?: string;
 
   @IsOptional()
   @IsEnum(Gender)

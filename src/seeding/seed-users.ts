@@ -9,6 +9,8 @@ import { User } from '../users/entities/user.entity';
 import { UserRepository } from '../users/users.repository';
 import { UserRole } from '../users/users.enums';
 import { UserSeedData, usersSeedData } from './seed-users.data';
+import { dataSource } from '../common/config/database.config';
+import { City } from '../cities/entities/cities.entity';
 
 async function ensureUserRole(
   rolesRepository: Repository<Role>,
@@ -48,13 +50,23 @@ async function ensureUser(
     userData.email,
   );
 
+  const userCity = dataSource.getRepository(City);
+
+  const city = await userCity.findOne({
+    where: { id: userData.city },
+  });
+
+  if (!city) 
+    throw new Error('city not found');
+
+
   const passwordHash = await bcrypt.hash(userData.password, hashSaltRounds);
   const userValues: Partial<User> = {
     email: userData.email,
     passwordHash,
     name: userData.name,
     birthdate: userData.birthdate,
-    city: userData.city,
+    city: city,
     gender: userData.gender,
     roleId: UserRole.USER,
     about: userData.about,

@@ -9,6 +9,7 @@ import { Role } from '../users/entities/role.entity';
 import { User } from '../users/entities/user.entity';
 import { UserRole } from '../users/users.enums';
 import { AdminSeedData, getAdminSeedData } from './seed-admin.data';
+import { City } from '../cities/entities/cities.entity';
 
 const ADMIN_ROLE_ID = Number(UserRole.ADMIN);
 const USER_ROLE_ID = Number(UserRole.USER);
@@ -52,12 +53,24 @@ async function ensureAdmin(
     .where('LOWER(user.email) = :email', { email: admin.email })
     .getOne();
   const passwordHash = await bcrypt.hash(admin.password, hashSaltRounds);
+
+  // access to db cities
+  const userCity = dataSource.getRepository(City);
+
+  // search for the user's city
+  const city = await userCity.findOne({
+    where: { id: admin.city },
+  });
+
+  if (!city) 
+    throw new Error('city not found');
+
   const adminValues: Partial<User> = {
     email: admin.email,
     passwordHash,
     name: admin.name,
     birthdate: admin.birthdate,
-    city: admin.city,
+    city: city,
     gender: admin.gender,
     roleId: ADMIN_ROLE_ID,
     about: null,
