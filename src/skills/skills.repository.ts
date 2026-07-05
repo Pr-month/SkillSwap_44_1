@@ -108,4 +108,19 @@ export class SkillsRepository extends Repository<Skill> {
 
     return Boolean(result.affected);
   }
+
+  // метод для возврата похожих карточек 
+  async findSimilarSkills(categoryId: number, skillId: number): Promise<Skill[]> {
+    return this.createQueryBuilder('skill')
+      // достаем данные о пользователе
+      .leftJoinAndSelect('skill.owner', 'owner')
+      // оставляем только с подходящей категорией
+      .where(`skill.categoryId = :categoryId`, {categoryId})
+      // исключаем из рекомендации исходный id
+      .andWhere(`skill.id != :skillId`, {skillId})
+      // ограничиваем выборку 10 значениями
+      .take(10)
+      // выполняем запрос
+      .getMany();
+  }
 }

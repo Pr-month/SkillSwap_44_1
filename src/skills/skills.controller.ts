@@ -27,6 +27,12 @@ export class SkillsController {
     return this.skillsService.findAll(query);
   }
 
+  // эндпоинт для получения похожих карточек
+  @Get(':id/similar')
+  async findSimilar(@Param('id', ParseIntPipe) id: number) {
+    return this.skillsService.findSimilar(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Post()
   async create(
