@@ -7,12 +7,14 @@ import {
   UseGuards,
   Body,
   Post,
+  Patch,
 } from '@nestjs/common';
 import { RequestsService } from './requests.service';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../auth/types/auth.types';
 import { CreateRequestDto } from './dto/create-request.dto';
+import { UpdateRequestDto } from './dto/update-request.dto';
 
 @Controller('requests')
 export class RequestsController {
@@ -44,5 +46,15 @@ export class RequestsController {
     @Req() req: AuthenticatedRequest,
   ) {
     return this.requestsService.create(createRequestDto, req.user);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateRequestDto: UpdateRequestDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.requestsService.update(id, updateRequestDto, req.user);
   }
 }
