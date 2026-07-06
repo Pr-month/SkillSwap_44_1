@@ -15,7 +15,6 @@ import { LoginDto } from './dto/login.dto';
 import { RefreshTokenGuard } from './guards/refresh-token.guard';
 import { RequestWithRefreshToken } from './types/auth.types';
 import { AppLoggerService } from '../logger/logger.service';
-import { LogoutDto } from './dto/logout.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -44,9 +43,10 @@ export class AuthController {
     return this.authService.refresh(req.user.sub, req.user.refreshToken);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  logout(@Body() logoutDto: LogoutDto) {
-    return this.authService.logout(logoutDto.token);
+  async logout(@Request() req: RequestWithRefreshToken) {
+    return this.authService.logout(req.user.sub, req.user.refreshToken);
   }
 }
