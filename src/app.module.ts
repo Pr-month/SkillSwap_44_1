@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-
+import { ConfigType } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { adminConfig } from './common/config/admin.config';
 import { appConfig } from './common/config/app.config';
@@ -24,20 +24,10 @@ import { CategoriesModule } from './categories/categories.module';
     }),
 
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        type: 'postgres',
-        url: config.getOrThrow<string>('DATABASE_CONFIG.url'),
-        synchronize: config.getOrThrow<boolean>('DATABASE_CONFIG.synchronize'),
+      inject: [databaseConfig.KEY],
+      useFactory: (config: ConfigType<typeof databaseConfig>) => ({
+        ...config,
         autoLoadEntities: true,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        extra: {
-          ssl: {
-            rejectUnauthorized: false,
-          },
-        },
       }),
     }),
 

@@ -1,22 +1,38 @@
+import * as dotenv from 'dotenv';
 import { ConfigType, registerAs } from '@nestjs/config';
 import { join } from 'path';
-import { DataSource } from 'typeorm';
+import { DataSource, DataSourceOptions } from 'typeorm';
 
-export const databaseConfig = registerAs('DATABASE_CONFIG', () => ({
-  url: process.env.DATABASE_URL?.trim(),
-  synchronize: process.env.SYNCRONIZE === 'true',
-}));
+dotenv.config();
+
+export const databaseConfig = registerAs(
+  'DATABASE_CONFIG',
+  (): DataSourceOptions => ({
+    type: 'postgres',
+    host: process.env.DATABASE_HOST ?? 'localhost',
+    port: parseInt(process.env.DATABASE_PORT ?? '5432', 10),
+    username: process.env.DATABASE_USER ?? 'postgres',
+    password: process.env.DATABASE_PASSWORD ?? '',
+    database: process.env.DATABASE_NAME ?? 'my_db',
+
+    entities: [join(__dirname, '../../**/*.entity{.ts,.js}')],
+
+    synchronize: process.env.DATABASE_SYNCRONIZE === 'false',
+
+    ssl: {
+      rejectUnauthorized: false,
+    },
+
+    extra: {
+      ssl: {
+        rejectUnauthorized: false,
+      },
+    },
+  }),
+);
 
 export type TDatabaseConfig = ConfigType<typeof databaseConfig>;
 
-const database = databaseConfig();
-
 export const dataSource = new DataSource({
-  type: 'postgres',
-  url: database.url,
-  entities: [join(__dirname, '../../**/*.entity{.ts,.js}')],
-  synchronize: database.synchronize,
-  ssl: {
-    rejectUnauthorized: false,
-  },
+  ...databaseConfig(),
 });
