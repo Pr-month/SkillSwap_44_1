@@ -139,4 +139,18 @@ export class SkillsService {
       }
     }
   }
+
+  // метод для получения похожих карточек
+  async findSimilar(skillId: number) {
+    // пытаемся найти скилл по переданному id
+    const skill = await this.skillsRepository.findById(skillId);
+
+    // если не нашли - выкидываем ошибку
+    if(!skill) {
+      throw new NotFoundException(`Skill with id ${skillId} not found `);
+    }
+
+    // если нашли - передаем в репозиторий категорию и айди скилла и возвращаем результат
+    return this.skillsRepository.findSimilarSkills(skill.categoryId, skillId);
+  }
 }
