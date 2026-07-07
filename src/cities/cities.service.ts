@@ -28,20 +28,23 @@ export class CitiesService {
     return this.citiesRepository.createCity(createCityDto);
   }
 
-  async findAll() {
-    return await this.citiesRepository.find();
+  findAll(search?: string): Promise<City[]> {
+    return this.citiesRepository.findCities(search);
   }
 
   async findOne(id: number) {
     const city = await this.citiesRepository.findById(id);
+
     if (!city) {
       throw new NotFoundException(`Город ${id} не найден`);
     }
+
     return city;
   }
 
   async update(id: number, updateCityDto: UpdateCityDto) {
     const city = await this.citiesRepository.findById(id);
+
     if (!city) {
       throw new NotFoundException(`Город ${id} не найден`);
     }
@@ -50,9 +53,11 @@ export class CitiesService {
       id,
       updateCityDto,
     );
+
     if (!updatedCity) {
       throw new NotFoundException(`Город ${id} не найден`);
     }
+
     return updatedCity;
   }
 

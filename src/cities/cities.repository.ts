@@ -24,6 +24,18 @@ export class CitiesRepository extends Repository<City> {
     });
   }
 
+  findCities(search?: string): Promise<City[]> {
+    const query = this.createQueryBuilder('city');
+
+    query.where('city.name ILIKE :search', {
+      search: `%${search}%`,
+    });
+
+    query.take(10);
+
+    return query.getMany();
+  }
+
   async updateCity(id: number, dto: UpdateCityDto): Promise<City | null> {
     const updateValues: Partial<City> = {};
 
