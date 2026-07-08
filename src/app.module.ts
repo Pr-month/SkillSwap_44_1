@@ -2,11 +2,13 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersModule } from './users/users.module';
-import { ConfigType } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { adminConfig } from './common/config/admin.config';
 import { appConfig } from './common/config/app.config';
-import { databaseConfig } from './common/config/database.config';
+import {
+  databaseConfig,
+  TDatabaseConfig,
+} from './common/config/database.config';
 import { jwtConfig } from './common/config/jwt.config';
 import { LoggerModule } from './logger/logger.module';
 import { SkillsModule } from './skills/skills.module';
@@ -25,7 +27,7 @@ import { CategoriesModule } from './categories/categories.module';
 
     TypeOrmModule.forRootAsync({
       inject: [databaseConfig.KEY],
-      useFactory: (config: ConfigType<typeof databaseConfig>) => ({
+      useFactory: (config: TDatabaseConfig) => ({
         ...config,
         autoLoadEntities: true,
       }),
