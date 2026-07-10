@@ -15,6 +15,7 @@
     "seeding:users": "ts-node -r tsconfig-paths/register src/seeding/seed-admin.ts",
     "seed:categories": "ts-node -r tsconfig-paths/register src/seeding/seed-categories.ts",
     "seed:test:users": "ts-node -r tsconfig-paths/register src/seeding/seed-users.ts",
+    "seed:test:skills": "ts-node -r tsconfig-paths/register src/seeding/seed-skills.ts",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest --config jest.config.ts",
     "test:watch": "jest --watch",
