@@ -15,13 +15,15 @@ import { UpdateCityDto } from './dto/update-city.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { City } from './entities/cities.entity';
 
+@ApiTags('cities')
 @Controller('cities')
 export class CitiesController {
   constructor(private readonly citiesService: CitiesService) {}
 
+  @ApiOperation({ summary: 'Post a new city' })
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -29,17 +31,20 @@ export class CitiesController {
     return this.citiesService.create(createCityDto);
   }
 
+  @ApiOperation({ summary: 'Get a list of cities' })
   @ApiOkResponse({ type: [City] })
   @Get()
   findAll(@Query('search') search?: string) {
     return this.citiesService.findAll(search);
   }
 
+  @ApiOperation({ summary: 'Get a city by id' })
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.citiesService.findOne(+id);
   }
 
+  @ApiOperation({ summary: 'Update a city by id' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id')
@@ -47,6 +52,7 @@ export class CitiesController {
     return this.citiesService.update(+id, updateCityDto);
   }
 
+  @ApiOperation({ summary: 'Delete a city by id' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')

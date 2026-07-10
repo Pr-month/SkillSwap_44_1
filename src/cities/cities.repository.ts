@@ -24,7 +24,7 @@ export class CitiesRepository extends Repository<City> {
     });
   }
 
-  findCities(search?: string): Promise<City[]> {
+  async findCities(search?: string): Promise<City[]> {
     const query = this.createQueryBuilder('city');
 
     if (search) {
