@@ -15,6 +15,8 @@ import { UpdateCityDto } from './dto/update-city.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { City } from './entities/cities.entity';
 
 @Controller('cities')
 export class CitiesController {
@@ -27,6 +29,7 @@ export class CitiesController {
     return this.citiesService.create(createCityDto);
   }
 
+  @ApiOkResponse({ type: [City] })
   @Get()
   findAll(@Query('search') search?: string) {
     return this.citiesService.findAll(search);

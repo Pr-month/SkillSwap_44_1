@@ -27,9 +27,11 @@ export class CitiesRepository extends Repository<City> {
   findCities(search?: string): Promise<City[]> {
     const query = this.createQueryBuilder('city');
 
-    query.where('city.name ILIKE :search', {
-      search: `%${search}%`,
-    });
+    if (search) {
+      query.where('city.name ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
 
     query.take(10);
 
@@ -44,11 +46,13 @@ export class CitiesRepository extends Repository<City> {
     }
 
     await this.update(id, updateValues);
+
     return this.findById(id);
   }
 
   async deleteCity(id: number): Promise<boolean> {
     const result = await this.delete(id);
+
     return Boolean(result.affected);
   }
 }
