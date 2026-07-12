@@ -5,6 +5,7 @@ export class CreateCityDto {
 
   @ApiProperty({
     example: 'Москва',
+    description: 'City name',
   })
   @IsString()
   name: string;
