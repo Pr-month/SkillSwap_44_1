@@ -19,7 +19,6 @@ import { ApiBearerAuth, ApiCreatedResponse, ApiNotFoundResponse, ApiOkResponse, 
 import { City } from './entities/cities.entity';
 
 @ApiTags('cities')
-@ApiBearerAuth()
 @Controller('cities')
 export class CitiesController {
   constructor(private readonly citiesService: CitiesService) {}
@@ -28,6 +27,7 @@ export class CitiesController {
   @ApiCreatedResponse({
     description: 'The city is created',
   })
+  @ApiBearerAuth()
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -65,6 +65,7 @@ export class CitiesController {
   @ApiNotFoundResponse({
     description: 'City not found',
   })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id')
@@ -79,6 +80,7 @@ export class CitiesController {
   @ApiNotFoundResponse({
     description: 'City not found',
   })
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
