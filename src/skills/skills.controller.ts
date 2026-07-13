@@ -17,7 +17,7 @@ import { CreateSkillDto } from './dto/create-skill.dto';
 import { UpdateSkillDto } from './dto/update-skill.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthenticatedRequest } from '../auth/types/auth.types';
-import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiOkResponse, ApiTags, ApiNotFoundResponse, ApiForbiddenResponse, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiCreatedResponse, ApiOperation, ApiOkResponse, ApiTags, ApiNotFoundResponse, ApiForbiddenResponse, ApiResponse, ApiUnauthorizedResponse } from '@nestjs/swagger';
 import { Skill } from './entities/skill.entity';
 
 @ApiTags('skills')
@@ -28,7 +28,9 @@ export class SkillsController {
   @ApiOperation({ summary: 'Returns the list of the skills' })
   @ApiOkResponse({
     description: 'A list of skills is received',
-    type: [Skill],
+  })
+  @ApiNotFoundResponse({
+    description: 'Page not found',
   })
   @Get()
   async findAll(@Query() query: GetSkillsQueryDto) {
@@ -52,9 +54,8 @@ export class SkillsController {
     type: Skill,
   })
   @ApiBearerAuth()
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
   })
   @UseGuards(JwtAuthGuard)
   @Post()
@@ -67,15 +68,14 @@ export class SkillsController {
 
   @ApiOperation({ summary: 'Adds to favorites' })
   @ApiCreatedResponse({
-    description: 'The skill added to favorites',
+    description: 'The skill is added to favorites',
   })
   @ApiNotFoundResponse({
     description: 'Skill not found',
   })
   @ApiBearerAuth()
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
   })
   @UseGuards(JwtAuthGuard)
   @Post(':id/favorite')
@@ -95,9 +95,11 @@ export class SkillsController {
     description: 'Skill not found',
   })
   @ApiBearerAuth()
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiForbiddenResponse({
+    description: 'Insufficient permissions',
   })
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
@@ -117,9 +119,11 @@ export class SkillsController {
     description: 'Skill not found',
   })
   @ApiBearerAuth()
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
+  })
+  @ApiForbiddenResponse({
+    description: 'Insufficient permissions',
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
@@ -138,9 +142,8 @@ export class SkillsController {
     description: 'Skill not found',
   })
   @ApiBearerAuth()
-  @ApiResponse({ 
-    status: 401, 
-    description: 'Unauthorized' 
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized',
   })
   @UseGuards(JwtAuthGuard)
   @Delete(':id/favorite')

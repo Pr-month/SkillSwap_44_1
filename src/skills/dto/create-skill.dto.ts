@@ -36,7 +36,7 @@ export class CreateSkillDto {
   description?: string;
 
   @ApiProperty({
-    description: 'Category of the skill',
+    description: 'Category ID',
     example: 1,
   })
   @Type(() => Number)
@@ -45,7 +45,7 @@ export class CreateSkillDto {
   categoryId: number;
 
   @ApiProperty({
-    description: 'Shows the image of the skill',
+    description: 'List of skill images',
     example: ['image.png', 'image1.png'],
     required: false
   })
