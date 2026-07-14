@@ -29,6 +29,9 @@ export function ApiSkillsGetFindSimilar() {
       description: 'A list of similar skills is received',
       type: [Skill],
     }),
+    ApiNotFoundResponse({
+      description: 'Skill not found',
+    }),
   );
 }
 
@@ -49,11 +52,11 @@ export function ApiSkillsPost() {
 export function ApiSkillsPostFavorite() {
   return applyDecorators(
     ApiOperation({ summary: 'Adds to favorites' }),
-    ApiCreatedResponse({
-      description: 'The skill is added to favorites',
+    ApiOkResponse({
+     description: 'The skill is added to favorites',
     }),
     ApiNotFoundResponse({
-      description: 'Skill not found',
+      description: 'Skill or user not found',
     }),
     ApiBearerAuth(),
     ApiUnauthorizedResponse({
@@ -87,6 +90,11 @@ export function ApiSkillsDelete() {
     ApiOperation({ summary: 'Removes the skill' }),
     ApiOkResponse({
       description: 'The skill is deleted',
+        schema: {
+        example: {
+          success: true,
+        },
+      },
     }),
     ApiNotFoundResponse({
       description: 'Skill not found',
@@ -108,7 +116,7 @@ export function ApiSkillsDeleteFavorite() {
       description: 'The skill is removed from favorites',
     }),
     ApiNotFoundResponse({
-      description: 'Skill not found',
+      description: 'Skill or user not found',
     }),
     ApiBearerAuth(),
     ApiUnauthorizedResponse({
