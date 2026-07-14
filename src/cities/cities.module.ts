@@ -8,9 +8,7 @@ import { CitiesRepository } from './cities.repository';
 @Module({
   imports: [TypeOrmModule.forFeature([City])],
   controllers: [CitiesController],
-  providers: [CitiesService, CitiesRepository, ],
-  exports: [
-    CitiesRepository,
-  ],
+  providers: [CitiesService, CitiesRepository],
+  exports: [CitiesRepository],
 })
 export class CitiesModule {}

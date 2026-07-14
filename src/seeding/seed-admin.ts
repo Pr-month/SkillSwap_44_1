@@ -62,8 +62,7 @@ async function ensureAdmin(
     where: { id: admin.city },
   });
 
-  if (!city) 
-    throw new Error('city not found');
+  if (!city) throw new Error('city not found');
 
   const adminValues: Partial<User> = {
     email: admin.email,

@@ -12,7 +12,6 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateSkillDto {
-
   @ApiProperty({
     description: 'Name of the skill',
     example: 'Игра на гитаре',
@@ -22,7 +21,6 @@ export class UpdateSkillDto {
   @IsString()
   @MaxLength(255)
   title?: string;
-
 
   @ApiProperty({
     description: 'Description of the skill',

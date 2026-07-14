@@ -13,7 +13,6 @@ import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateSkillDto {
-
   @ApiProperty({
     description: 'Name of the skill',
     example: 'Игра на гитаре',
@@ -23,7 +22,6 @@ export class CreateSkillDto {
   @IsNotEmpty()
   @MaxLength(255)
   title: string;
-
 
   @ApiProperty({
     description: 'Describes the skill',
@@ -47,7 +45,7 @@ export class CreateSkillDto {
   @ApiProperty({
     description: 'List of skill images',
     example: ['image.png', 'image1.png'],
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsArray()

@@ -56,9 +56,7 @@ async function ensureUser(
     where: { id: userData.city },
   });
 
-  if (!city) 
-    throw new Error('city not found');
-
+  if (!city) throw new Error('city not found');
 
   const passwordHash = await bcrypt.hash(userData.password, hashSaltRounds);
   const userValues: Partial<User> = {

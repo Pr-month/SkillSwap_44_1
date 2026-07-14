@@ -3,11 +3,10 @@ import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Min } from 'class-validator';
 
 export class GetSkillsQueryDto {
-
   @ApiProperty({
     description: 'Number of the page of the skill',
     example: 1,
-    required: false
+    required: false,
   })
   @IsOptional()
   @Type(() => Number)
@@ -18,7 +17,7 @@ export class GetSkillsQueryDto {
   @ApiProperty({
     description: 'Number of skills per page',
     example: 2,
-    required: false
+    required: false,
   })
   @IsOptional()
   @Type(() => Number)
@@ -29,7 +28,7 @@ export class GetSkillsQueryDto {
   @ApiProperty({
     description: 'Search for the skill',
     example: 'Игра на гитаре',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
@@ -38,7 +37,7 @@ export class GetSkillsQueryDto {
   @ApiProperty({
     description: 'Category of the skill',
     example: 'Музыка',
-    required: false
+    required: false,
   })
   @IsOptional()
   @IsString()
