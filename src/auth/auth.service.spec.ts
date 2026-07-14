@@ -300,10 +300,7 @@ describe('AuthService', () => {
 
       const result = await service.register(registerRequestDto);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        registerRequestDto.password,
-        10,
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(registerRequestDto.password, 10);
       expect(repository.createUser).toHaveBeenCalledWith(
         registerRequestDto,
         expectedPasswordHash,
@@ -442,10 +439,7 @@ describe('AuthService', () => {
         email: mockUser.email,
         roleId: mockUser.roleId,
       });
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        mockTokens.refreshToken,
-        10,
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(mockTokens.refreshToken, 10);
       expect(repository.updateUser).toHaveBeenCalledWith(userId, {
         refreshTokenHash: 'new-hashed-refresh-token',
       });
@@ -466,10 +460,9 @@ describe('AuthService', () => {
       await expect(service.refresh(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.refresh(userId, refreshToken)).rejects.toHaveProperty(
-        'message',
-        'Unauthorized',
-      );
+      await expect(
+        service.refresh(userId, refreshToken),
+      ).rejects.toHaveProperty('message', 'Unauthorized');
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(generateTokensSpy).not.toHaveBeenCalled();
@@ -493,10 +486,9 @@ describe('AuthService', () => {
       await expect(service.refresh(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.refresh(userId, refreshToken)).rejects.toHaveProperty(
-        'message',
-        'Unauthorized',
-      );
+      await expect(
+        service.refresh(userId, refreshToken),
+      ).rejects.toHaveProperty('message', 'Unauthorized');
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(generateTokensSpy).not.toHaveBeenCalled();
@@ -568,7 +560,10 @@ describe('AuthService', () => {
       const result = await service.logout(userId, refreshToken);
 
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
-      expect(bcrypt.compare).toHaveBeenCalledWith(refreshToken, mockUser.refreshTokenHash);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        refreshToken,
+        mockUser.refreshTokenHash,
+      );
       expect(repository.clearRefreshToken).toHaveBeenCalledWith(userId);
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
@@ -640,7 +635,10 @@ describe('AuthService', () => {
         'Refresh token is invalid',
       );
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
-      expect(bcrypt.compare).toHaveBeenCalledWith(refreshToken, mockUser.refreshTokenHash);
+      expect(bcrypt.compare).toHaveBeenCalledWith(
+        refreshToken,
+        mockUser.refreshTokenHash,
+      );
       expect(repository.clearRefreshToken).not.toHaveBeenCalled();
     });
   });
