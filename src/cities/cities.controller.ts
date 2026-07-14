@@ -24,17 +24,15 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { City } from './entities/cities.entity';
+import {  ApiTags } from '@nestjs/swagger';
+import { ApiCitiesDelete, ApiCitiesGet, ApiCitiesGetAll, ApiCitiesPatch, ApiCitiesPost } from './cities.swagger';
 
 @ApiTags('cities')
-@ApiBearerAuth()
 @Controller('cities')
 export class CitiesController {
   constructor(private readonly citiesService: CitiesService) {}
 
-  @ApiOperation({ summary: 'Post a new city' })
-  @ApiCreatedResponse({
-    description: 'The city is created',
-  })
+  @ApiCitiesPost()
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
@@ -42,36 +40,19 @@ export class CitiesController {
     return this.citiesService.create(createCityDto);
   }
 
-  @ApiOperation({ summary: 'Get a list of cities' })
-  @ApiOkResponse({
-    description: 'The cities list is received',
-    type: [City],
-  })
+  @ApiCitiesGetAll()
   @Get()
   findAll(@Query('search') search?: string) {
     return this.citiesService.findAll(search);
   }
 
-  @ApiOperation({ summary: 'Get a city by id' })
-  @ApiCreatedResponse({
-    description: 'The city is found by its id',
-    type: City,
-  })
-  @ApiNotFoundResponse({
-    description: 'City not found',
-  })
+  @ApiCitiesGet()
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.citiesService.findOne(+id);
   }
 
-  @ApiOperation({ summary: 'Update a city by id' })
-  @ApiOkResponse({
-    description: 'City is updated by its id',
-  })
-  @ApiNotFoundResponse({
-    description: 'City not found',
-  })
+  @ApiCitiesPatch()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Patch(':id')
@@ -79,13 +60,7 @@ export class CitiesController {
     return this.citiesService.update(+id, updateCityDto);
   }
 
-  @ApiOperation({ summary: 'Delete a city by id' })
-  @ApiOkResponse({
-    description: 'The city is deleted by its id',
-  })
-  @ApiNotFoundResponse({
-    description: 'City not found',
-  })
+  @ApiCitiesDelete()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Delete(':id')
