@@ -24,6 +24,20 @@ export class CitiesRepository extends Repository<City> {
     });
   }
 
+  async findCities(search?: string): Promise<City[]> {
+    const query = this.createQueryBuilder('city');
+
+    if (search) {
+      query.where('city.name ILIKE :search', {
+        search: `%${search}%`,
+      });
+    }
+
+    query.take(10);
+
+    return query.getMany();
+  }
+
   async updateCity(id: number, dto: UpdateCityDto): Promise<City | null> {
     const updateValues: Partial<City> = {};
 
@@ -32,11 +46,13 @@ export class CitiesRepository extends Repository<City> {
     }
 
     await this.update(id, updateValues);
+
     return this.findById(id);
   }
 
   async deleteCity(id: number): Promise<boolean> {
     const result = await this.delete(id);
+
     return Boolean(result.affected);
   }
 }
