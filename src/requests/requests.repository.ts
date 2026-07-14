@@ -173,7 +173,7 @@ export class RequestsRepository extends Repository<Requests> {
     return this.findRequestWithDetails(id);
   }
 
-  private async findRequestWithDetails(id: string): Promise<Requests | null> {
+  async findRequestWithDetails(id: string): Promise<Requests | null> {
     return this.findOne({
       where: { id },
       relations: {

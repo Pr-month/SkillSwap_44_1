@@ -1,9 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { RequestsService } from './requests.service';
-import { RequestsRepository } from './requests.repository';
+import { NotificationsGateway } from '../notification/notifications.gateway';
 import { UserRole } from '../users/users.enums';
-import { Status } from './enum/status.enum';
 import { UpdateRequestDto } from './dto/update-request.dto';
+import { Status } from './enum/status.enum';
+import { RequestsRepository } from './requests.repository';
+import { RequestsService } from './requests.service';
 
 describe('RequestsService', () => {
   let service: RequestsService;
@@ -30,6 +31,12 @@ describe('RequestsService', () => {
         {
           provide: RequestsRepository,
           useValue: requestsRepository,
+        },
+        {
+          provide: NotificationsGateway,
+          useValue: {
+            notifyUser: jest.fn(),
+          },
         },
       ],
     }).compile();
@@ -64,6 +71,17 @@ describe('RequestsService', () => {
       id: '1',
       status: Status.ACCEPTED,
       isRead: true,
+      sender: {
+        id: '1',
+      },
+      receiver: {
+        id: '2',
+        name: 'Иван',
+        avatar: null,
+      },
+      requestedSkill: {
+        title: 'Английский язык',
+      },
     };
 
     requestsRepository.updateIncomingStatus.mockResolvedValue(updatedRequest);
