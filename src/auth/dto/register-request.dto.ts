@@ -24,7 +24,7 @@ export class RegisterRequestDto {
   gender: Gender;
 
   @IsString()
-  city: string;
+  cityId: string;
 
   @IsString()
   birthdate: string;

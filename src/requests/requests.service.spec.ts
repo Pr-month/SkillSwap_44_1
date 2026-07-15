@@ -1,18 +1,98 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { NotificationsGateway } from '../notification/notifications.gateway';
+import { UserRole } from '../users/users.enums';
+import { UpdateRequestDto } from './dto/update-request.dto';
+import { Status } from './enum/status.enum';
+import { RequestsRepository } from './requests.repository';
 import { RequestsService } from './requests.service';
 
 describe('RequestsService', () => {
   let service: RequestsService;
+  let requestsRepository: {
+    getIncomingRequests: jest.Mock;
+    updateIncomingStatus: jest.Mock;
+  };
+
+  const receiver = {
+    sub: '2',
+    email: 'receiver@example.com',
+    roleId: UserRole.USER,
+  };
 
   beforeEach(async () => {
+    requestsRepository = {
+      getIncomingRequests: jest.fn(),
+      updateIncomingStatus: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
-      providers: [RequestsService],
+      providers: [
+        RequestsService,
+        {
+          provide: RequestsRepository,
+          useValue: requestsRepository,
+        },
+        {
+          provide: NotificationsGateway,
+          useValue: {
+            notifyUser: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<RequestsService>(RequestsService);
   });
 
-  it('should be defined', () => {
+  it('должен быть определен', () => {
     expect(service).toBeDefined();
+  });
+
+  it('должен возвращать входящие заявки текущего пользователя', async () => {
+    const incomingRequests = [
+      {
+        id: '1',
+        status: 'pending',
+        isRead: false,
+      },
+    ];
+
+    requestsRepository.getIncomingRequests.mockResolvedValue(incomingRequests);
+
+    await expect(service.incoming(receiver)).resolves.toBe(incomingRequests);
+    expect(requestsRepository.getIncomingRequests).toHaveBeenCalledWith('2');
+  });
+
+  it('должен передавать обновление статуса входящей заявки в репозиторий', async () => {
+    const updateRequestDto: UpdateRequestDto = {
+      status: Status.ACCEPTED,
+    };
+    const updatedRequest = {
+      id: '1',
+      status: Status.ACCEPTED,
+      isRead: true,
+      sender: {
+        id: '1',
+      },
+      receiver: {
+        id: '2',
+        name: 'Иван',
+        avatar: null,
+      },
+      requestedSkill: {
+        title: 'Английский язык',
+      },
+    };
+
+    requestsRepository.updateIncomingStatus.mockResolvedValue(updatedRequest);
+
+    await expect(service.update('1', updateRequestDto, receiver)).resolves.toBe(
+      updatedRequest,
+    );
+    expect(requestsRepository.updateIncomingStatus).toHaveBeenCalledWith(
+      '1',
+      Status.ACCEPTED,
+      '2',
+    );
   });
 });

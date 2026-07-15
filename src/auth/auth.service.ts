@@ -177,37 +177,24 @@ export class AuthService {
     }
   }
 
-  async logout(refreshToken: string) {
-    try {
-      const payload = await this.jwtService.verifyAsync<IJwtPayload>(
-        refreshToken,
-        {
-          secret: this.config.refreshToken,
-        },
-      );
+  async logout(userId: string, refreshToken: string) {
+    const user = await this.usersRepository.findByIdWithRefreshToken(userId);
 
-      const user = await this.usersRepository.findByIdWithRefreshToken(
-        payload.sub,
-      );
-
-      if (!user || !user.refreshTokenHash) {
-        throw new UnauthorizedException('Refresh token is invalid');
-      }
-
-      const isRefreshTokenValid = await bcrypt.compare(
-        refreshToken,
-        user.refreshTokenHash,
-      );
-
-      if (!isRefreshTokenValid) {
-        throw new UnauthorizedException('Refresh token is invalid');
-      }
-
-      await this.usersRepository.clearRefreshToken(user.id);
-
-      return { message: 'Logged out successfully' };
-    } catch {
+    if (!user || !user.refreshTokenHash) {
       throw new UnauthorizedException('Refresh token is invalid');
     }
+
+    const isRefreshTokenValid = await bcrypt.compare(
+      refreshToken,
+      user.refreshTokenHash,
+    );
+
+    if (!isRefreshTokenValid) {
+      throw new UnauthorizedException('Refresh token is invalid');
+    }
+
+    await this.usersRepository.clearRefreshToken(user.id);
+
+    return { message: 'Logged out successfully' };
   }
 }
