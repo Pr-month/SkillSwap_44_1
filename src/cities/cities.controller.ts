@@ -9,14 +9,18 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import {
-  ApiTags
-} from '@nestjs/swagger';
+import { ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { CitiesService } from './cities.service';
-import { ApiCitiesDelete, ApiCitiesGet, ApiCitiesGetAll, ApiCitiesPatch, ApiCitiesPost } from './cities.swagger';
+import {
+  ApiCitiesDelete,
+  ApiCitiesGet,
+  ApiCitiesGetAll,
+  ApiCitiesPatch,
+  ApiCitiesPost,
+} from './cities.swagger';
 import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
 

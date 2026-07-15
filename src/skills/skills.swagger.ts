@@ -53,7 +53,7 @@ export function ApiSkillsPostFavorite() {
   return applyDecorators(
     ApiOperation({ summary: 'Adds to favorites' }),
     ApiOkResponse({
-     description: 'The skill is added to favorites',
+      description: 'The skill is added to favorites',
     }),
     ApiNotFoundResponse({
       description: 'Skill or user not found',
@@ -90,7 +90,7 @@ export function ApiSkillsDelete() {
     ApiOperation({ summary: 'Removes the skill' }),
     ApiOkResponse({
       description: 'The skill is deleted',
-        schema: {
+      schema: {
         example: {
           success: true,
         },
