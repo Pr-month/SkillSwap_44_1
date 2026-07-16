@@ -1,5 +1,5 @@
-import { AppModule } from 'src/app.module';
-import { City } from 'src/cities/entities/cities.entity';
+import { AppModule } from '../app.module';
+import { City } from '../cities/entities/cities.entity';
 import { citiesSeedData } from './seed-cities.data';
 
 import { NestFactory } from '@nestjs/core';
