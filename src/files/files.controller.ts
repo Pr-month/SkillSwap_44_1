@@ -12,10 +12,12 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { ApiUploadFile } from './files.swagger';
 
 @Controller('files')
 export class FilesController {
   @Post()
+  @ApiUploadFile()
   // настраиваем перехватчик запроса
   @UseInterceptors(
     FileInterceptor('file', {

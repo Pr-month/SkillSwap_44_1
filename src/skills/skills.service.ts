@@ -146,7 +146,7 @@ export class SkillsService {
     const skill = await this.skillsRepository.findById(skillId);
 
     // если не нашли - выкидываем ошибку
-    if(!skill) {
+    if (!skill) {
       throw new NotFoundException(`Skill with id ${skillId} not found `);
     }
 

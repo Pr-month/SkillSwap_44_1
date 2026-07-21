@@ -1,26 +1,75 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateCityDto } from './dto/create-city.dto';
 import { UpdateCityDto } from './dto/update-city.dto';
+import { City } from './entities/cities.entity';
+import { CitiesRepository } from './cities.repository';
 
 @Injectable()
 export class CitiesService {
-  create(createCityDto: CreateCityDto) {
-    return 'This action adds a new city';
+  constructor(private readonly citiesRepository: CitiesRepository) {}
+
+  async create(createCityDto: CreateCityDto): Promise<City> {
+    const { name } = createCityDto;
+
+    if (name) {
+      const city = await this.citiesRepository.findOne({
+        where: { name: name },
+      });
+
+      if (city) {
+        throw new ConflictException(`Такой город уже существует`);
+      }
+    }
+
+    return this.citiesRepository.createCity(createCityDto);
   }
 
-  findAll() {
-    return `This action returns all cities`;
+  findAll(search?: string): Promise<City[]> {
+    return this.citiesRepository.findCities(search);
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} city`;
+  async findOne(id: number) {
+    const city = await this.citiesRepository.findById(id);
+
+    if (!city) {
+      throw new NotFoundException(`Город ${id} не найден`);
+    }
+
+    return city;
   }
 
-  update(id: number, updateCityDto: UpdateCityDto) {
-    return `This action updates a #${id} city`;
+  async update(id: number, updateCityDto: UpdateCityDto) {
+    const city = await this.citiesRepository.findById(id);
+
+    if (!city) {
+      throw new NotFoundException(`Город ${id} не найден`);
+    }
+
+    const updatedCity = await this.citiesRepository.updateCity(
+      id,
+      updateCityDto,
+    );
+
+    if (!updatedCity) {
+      throw new NotFoundException(`Город ${id} не найден`);
+    }
+
+    return updatedCity;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} city`;
+  async remove(id: number) {
+    const city = await this.citiesRepository.findById(id);
+
+    if (!city) {
+      throw new NotFoundException(`Город ${id} не найден`);
+    }
+
+    await this.citiesRepository.deleteCity(id);
+
+    return { message: 'Город успешно удален' };
   }
 }

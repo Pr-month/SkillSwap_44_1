@@ -300,10 +300,7 @@ describe('AuthService', () => {
 
       const result = await service.register(registerRequestDto);
 
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        registerRequestDto.password,
-        10,
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(registerRequestDto.password, 10);
       expect(repository.createUser).toHaveBeenCalledWith(
         registerRequestDto,
         expectedPasswordHash,
@@ -442,10 +439,7 @@ describe('AuthService', () => {
         email: mockUser.email,
         roleId: mockUser.roleId,
       });
-      expect(bcrypt.hash).toHaveBeenCalledWith(
-        mockTokens.refreshToken,
-        10,
-      );
+      expect(bcrypt.hash).toHaveBeenCalledWith(mockTokens.refreshToken, 10);
       expect(repository.updateUser).toHaveBeenCalledWith(userId, {
         refreshTokenHash: 'new-hashed-refresh-token',
       });
@@ -466,10 +460,9 @@ describe('AuthService', () => {
       await expect(service.refresh(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.refresh(userId, refreshToken)).rejects.toHaveProperty(
-        'message',
-        'Unauthorized',
-      );
+      await expect(
+        service.refresh(userId, refreshToken),
+      ).rejects.toHaveProperty('message', 'Unauthorized');
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(generateTokensSpy).not.toHaveBeenCalled();
@@ -493,10 +486,9 @@ describe('AuthService', () => {
       await expect(service.refresh(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.refresh(userId, refreshToken)).rejects.toHaveProperty(
-        'message',
-        'Unauthorized',
-      );
+      await expect(
+        service.refresh(userId, refreshToken),
+      ).rejects.toHaveProperty('message', 'Unauthorized');
       expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).not.toHaveBeenCalled();
       expect(generateTokensSpy).not.toHaveBeenCalled();
@@ -551,165 +543,98 @@ describe('AuthService', () => {
     });
 
     it('should successfully logout user', async () => {
+      const userId = 'user-id-123';
       const refreshToken = 'valid-refresh-token';
 
-      const mockPayload = {
-        sub: 'user-id-123',
-        email: 'user@example.com',
-        roleId: UserRole.USER,
-      };
-
       const mockUser = {
-        id: 'user-id-123',
+        id: userId,
         email: 'user@example.com',
         roleId: UserRole.USER,
         refreshTokenHash: 'hashed-refresh-token',
       };
 
-      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
       (repository.findByIdWithRefreshToken as jest.Mock).mockResolvedValue(
         mockUser,
       );
 
-      const result = await service.logout(refreshToken);
+      const result = await service.logout(userId, refreshToken);
 
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith(refreshToken, {
-        secret: 'test-refresh-secret',
-      });
-      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(
-        'user-id-123',
-      );
+      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).toHaveBeenCalledWith(
         refreshToken,
         mockUser.refreshTokenHash,
       );
-      expect(repository.clearRefreshToken).toHaveBeenCalledWith('user-id-123');
+      expect(repository.clearRefreshToken).toHaveBeenCalledWith(userId);
       expect(result).toEqual({ message: 'Logged out successfully' });
     });
 
-    it('should throw UnauthorizedException when refresh token is invalid JWT', async () => {
-      const refreshToken = 'invalid-jwt-token';
-
-      (jwtService.verifyAsync as jest.Mock).mockRejectedValue(
-        new Error('Invalid token'),
-      );
-
-      await expect(service.logout(refreshToken)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(service.logout(refreshToken)).rejects.toHaveProperty(
-        'message',
-        'Refresh token is invalid',
-      );
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith(refreshToken, {
-        secret: 'test-refresh-secret',
-      });
-      expect(repository.findByIdWithRefreshToken).not.toHaveBeenCalled();
-    });
-
     it('should throw UnauthorizedException when user not found', async () => {
+      const userId = 'nonexistent-user-id';
       const refreshToken = 'valid-refresh-token';
 
-      const mockPayload = {
-        sub: 'nonexistent-user-id',
-        email: 'user@example.com',
-        roleId: UserRole.USER,
-      };
-
-      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
       (repository.findByIdWithRefreshToken as jest.Mock).mockResolvedValue(
         null,
       );
 
-      await expect(service.logout(refreshToken)).rejects.toThrow(
+      await expect(service.logout(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.logout(refreshToken)).rejects.toHaveProperty(
+      await expect(service.logout(userId, refreshToken)).rejects.toHaveProperty(
         'message',
         'Refresh token is invalid',
       );
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith(refreshToken, {
-        secret: 'test-refresh-secret',
-      });
-      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(
-        'nonexistent-user-id',
-      );
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
     });
 
     it('should throw UnauthorizedException when user has no refresh token hash', async () => {
+      const userId = 'user-id-123';
       const refreshToken = 'valid-refresh-token';
 
-      const mockPayload = {
-        sub: 'user-id-123',
-        email: 'user@example.com',
-        roleId: UserRole.USER,
-      };
-
       const mockUser = {
-        id: 'user-id-123',
+        id: userId,
         email: 'user@example.com',
         roleId: UserRole.USER,
         refreshTokenHash: null,
       };
 
-      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
       (repository.findByIdWithRefreshToken as jest.Mock).mockResolvedValue(
         mockUser,
       );
 
-      await expect(service.logout(refreshToken)).rejects.toThrow(
+      await expect(service.logout(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.logout(refreshToken)).rejects.toHaveProperty(
+      await expect(service.logout(userId, refreshToken)).rejects.toHaveProperty(
         'message',
         'Refresh token is invalid',
       );
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith(refreshToken, {
-        secret: 'test-refresh-secret',
-      });
-      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(
-        'user-id-123',
-      );
-      expect(bcrypt.compare).not.toHaveBeenCalled();
+      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
     });
 
     it('should throw UnauthorizedException when refresh token is invalid', async () => {
+      const userId = 'user-id-123';
       const refreshToken = 'invalid-refresh-token';
 
-      const mockPayload = {
-        sub: 'user-id-123',
-        email: 'user@example.com',
-        roleId: UserRole.USER,
-      };
-
       const mockUser = {
-        id: 'user-id-123',
+        id: userId,
         email: 'user@example.com',
         roleId: UserRole.USER,
         refreshTokenHash: 'hashed-refresh-token',
       };
 
-      (jwtService.verifyAsync as jest.Mock).mockResolvedValue(mockPayload);
       (bcrypt.compare as jest.Mock).mockResolvedValue(false);
       (repository.findByIdWithRefreshToken as jest.Mock).mockResolvedValue(
         mockUser,
       );
 
-      await expect(service.logout(refreshToken)).rejects.toThrow(
+      await expect(service.logout(userId, refreshToken)).rejects.toThrow(
         UnauthorizedException,
       );
-      await expect(service.logout(refreshToken)).rejects.toHaveProperty(
+      await expect(service.logout(userId, refreshToken)).rejects.toHaveProperty(
         'message',
         'Refresh token is invalid',
       );
-      expect(jwtService.verifyAsync).toHaveBeenCalledWith(refreshToken, {
-        secret: 'test-refresh-secret',
-      });
-      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(
-        'user-id-123',
-      );
+      expect(repository.findByIdWithRefreshToken).toHaveBeenCalledWith(userId);
       expect(bcrypt.compare).toHaveBeenCalledWith(
         refreshToken,
         mockUser.refreshTokenHash,

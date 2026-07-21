@@ -18,6 +18,7 @@ import { join } from 'path';
 import { RequestsModule } from './requests/requests.module';
 import { CategoriesModule } from './categories/categories.module';
 import { CitiesModule } from './cities/cities.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { CitiesModule } from './cities/cities.module';
     RequestsModule,
     CategoriesModule,
     CitiesModule,
+    NotificationModule,
   ],
   controllers: [],
   providers: [],

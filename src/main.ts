@@ -11,8 +11,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    logger: WinstonModule.createLogger(winstonConfig),
-    bufferLogs: true,
+    // logger: WinstonModule.createLogger(winstonConfig),
+    // bufferLogs: true,
   });
 
   const logger = await app.resolve(AppLoggerService);
