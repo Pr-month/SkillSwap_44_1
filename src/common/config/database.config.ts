@@ -17,7 +17,7 @@ export const databaseConfig = registerAs(
 
     entities: [join(__dirname, '../../**/*.entity{.ts,.js}')],
 
-    synchronize: process.env.DATABASE_SYNCRONIZE === 'true',
+    synchronize: false,
 
     ssl: {
       rejectUnauthorized: false,
