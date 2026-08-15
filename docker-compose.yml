@@ -1,0 +1,30 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: skill-swap-app
+    restart: unless-stopped
+
+    ports:
+      - "${PORT:-3000}:3000"
+
+    env_file:
+      - .env
+
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+
+    command: sh -c "npm run migration:run && npm run start:dev"
+
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - ./logs:/app/logs
+
+    networks:
+      - skill-swap-network
+
+networks:
+  skill-swap-network:
+    driver: bridge
